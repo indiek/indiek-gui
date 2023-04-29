@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from tkinter import *
 from tkinter import ttk
+from functools import partial
 
 
 class Orchestrator:
@@ -34,7 +35,7 @@ class Orchestrator:
                 style='Rightpanel.TFrame'
             )
         
-        self.right_panel.grid(row=0, column=1, sticky=(E, N, S))
+        self.right_panel.grid(row=0, column=1, sticky=(E, N, S, W))
 
     def _initialize_left_panel(self):
         left_panel_style_name = 'Leftpanel.TFrame'
@@ -53,19 +54,19 @@ class Orchestrator:
                 style=left_panel_style_name
             )
 
-        self.left_panel.grid(row=0, column=0, sticky=(W, N, S))
+        self.left_panel.grid(row=0, column=0, sticky=(E, W, N, S))
 
-        ttk.Label(self.left_panel, text="filter").grid(column=0, row=0, sticky=(N,E,))
-        ttk.Label(self.left_panel, text="search").grid(column=0, row=1, sticky=(E,))
+        ttk.Label(self.left_panel, text="filter").grid(column=0, row=0, sticky=(N,E,S))
+        ttk.Label(self.left_panel, text="search").grid(column=0, row=1, sticky='news')
 
         check_buttons_frame = ttk.Frame(self.left_panel, borderwidth=5)
         check_buttons_frame.grid(column=1, row=0, sticky='news')
 
         cats = ['Definitions', 'Theorems', 'Proofs']
         for cat in cats:
-            self.filter_vars[cat] = StringVar(value='')
-            def custom_filter(*args): 
-                self.update_filter(cat, self.filter_vars[cat])
+            custom_var = StringVar(value='')
+            self.filter_vars[cat] = custom_var
+            custom_filter = partial(self.update_filter, cat, custom_var)
             self.filter_callbacks[cat] = custom_filter
 
         for colix, cat in enumerate(cats):
@@ -79,14 +80,14 @@ class Orchestrator:
                     offvalue=''
                 ).grid(row=0, column=colix)
             
-    def update_filter(self, ref, val_):
+    def update_filter(self, ref, val_, *args):
         val = val_.get()
         if val:
             assert ref == val, f"{ref=}, {val=}"
             self.filters.append(val)
         else:
             self.filters = [v for v in self.filters if v != ref]
-        print(f"{self.filters=}")
+        # print(f"{self.filters=}")
 
 if __name__ == '__main__':
     # import sys
