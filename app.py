@@ -5,6 +5,7 @@ from tkinter import ttk
 
 class Orchestrator:
     def __init__(self, root):       
+        self.filters = []
         self.mainframe = ttk.Frame(root)
         self.mainframe.grid(column=0, row=0, sticky='news')
         self.mainframe.columnconfigure(0, weight=1)
@@ -33,10 +34,10 @@ class Orchestrator:
         self.right_panel.grid(row=0, column=1, sticky=(E, N, S))
 
     def _initialize_left_panel(self):
-        self.left_panel_style_name = 'Leftpanel.TFrame'
-        self.left_panel_style = ttk.Style()
-        self.left_panel_style.configure(
-            self.left_panel_style_name, 
+        left_panel_style_name = 'Leftpanel.TFrame'
+        left_panel_style = ttk.Style()
+        left_panel_style.configure(
+            left_panel_style_name, 
             font='helvetica 24', 
             background='yellow', 
             foreground='black',
@@ -46,17 +47,40 @@ class Orchestrator:
                 self.mainframe, 
                 borderwidth=5, 
                 relief="ridge", 
-                style=self.left_panel_style_name
+                style=left_panel_style_name
             )
 
         self.left_panel.grid(row=0, column=0, sticky=(W, N, S))
-        self.left_panel_widgets = {}
+
         ttk.Label(self.left_panel, text="filter").grid(column=0, row=0, sticky=(N,E,))
-        # ttk.Radiobutton()
         ttk.Label(self.left_panel, text="search").grid(column=0, row=1, sticky=(E,))
 
-        # for child in self.left_panel.winfo_children(): 
-        #     child['style'] = self.left_panel_style_name
+        check_buttons_frame = ttk.Frame(self.left_panel, borderwidth=5)
+        check_buttons_frame.grid(column=1, row=0, sticky='news')
+
+        cats = ['Definitions', 'Theorems', 'Proofs']
+        for colix, cat in enumerate(cats):
+            custom_var = StringVar()
+            def custom_filter(*args): 
+                self.update_filter(cat, custom_var)
+            ttk.Checkbutton(
+                check_buttons_frame, 
+                text=cat, 
+                command=custom_filter,
+                variable=custom_var,
+                compound='bottom',
+                onvalue=cat,
+                offvalue=''
+                ).grid(row=0, column=colix)
+            
+    def update_filter(self, ref, val_):
+        val = val_.get()
+        if val:
+            assert ref == val, f"{ref=}, {val=}"
+            self.filters.append(val)
+        else:
+            self.filters = [v for v in self.filters if v != ref]
+        print(f"{self.filters=}")
 
 if __name__ == '__main__':
     # import sys
