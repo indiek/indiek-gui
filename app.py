@@ -6,6 +6,9 @@ from tkinter import ttk
 class Orchestrator:
     def __init__(self, root):       
         self.filters = []
+        self.filter_callbacks = {}
+        self.filter_buttons = {}
+        self.filter_vars = {}
         self.mainframe = ttk.Frame(root)
         self.mainframe.grid(column=0, row=0, sticky='news')
         self.mainframe.columnconfigure(0, weight=1)
@@ -59,18 +62,21 @@ class Orchestrator:
         check_buttons_frame.grid(column=1, row=0, sticky='news')
 
         cats = ['Definitions', 'Theorems', 'Proofs']
-        for colix, cat in enumerate(cats):
-            custom_var = StringVar()
+        for cat in cats:
+            self.filter_vars[cat] = StringVar(value='')
             def custom_filter(*args): 
-                self.update_filter(cat, custom_var)
+                self.update_filter(cat, self.filter_vars[cat])
+            self.filter_callbacks[cat] = custom_filter
+
+        for colix, cat in enumerate(cats):
             ttk.Checkbutton(
-                check_buttons_frame, 
-                text=cat, 
-                command=custom_filter,
-                variable=custom_var,
-                compound='bottom',
-                onvalue=cat,
-                offvalue=''
+                    check_buttons_frame, 
+                    text=cat, 
+                    variable=self.filter_vars[cat],
+                    compound='text',
+                    onvalue=cat,
+                    command=self.filter_callbacks[cat],
+                    offvalue=''
                 ).grid(row=0, column=colix)
             
     def update_filter(self, ref, val_):
