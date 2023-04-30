@@ -50,9 +50,6 @@ class Orchestrator:
         self.right_panel.add(self.edit_panel, weight=1)
         # self.right_panel.grid(row=0, column=1, sticky=(E, N, S, W))
 
-        # self.root.event_add('<<search-update>>', '<<filter-update>>',
-        #           '<<searchbar-update>>')
-
     def _initialize_filter_block(self):
         ttk.Label(self.left_panel, text="filter").grid(column=0, row=0, sticky=(N, W, E, S))
         
@@ -111,6 +108,7 @@ class Orchestrator:
                 # borderwidth=15
             )
         search_entry.grid(row=0, column=0, sticky='news', pady=2)
+        search_entry.bind("<Return>", self.collect_search)
 
     def _initialize_search_results(self):
         self.search_results_str = StringVar(value='Initial State')
@@ -148,6 +146,12 @@ class Orchestrator:
                 style=left_panel_style_name,
                 text='Search'
             )
+        # self.left_panel.event_add(
+        #         '<<search-update>>', 
+        #         '<<filter-update>>',
+        #         '<<searchbar-update>>'
+        #     )
+        self.left_panel.bind('<<searchbar-update>>', self.collect_search)
         self.left_panel.bind('<<filter-update>>', self.collect_search)
         # self.left_panel.grid(row=0, column=0, sticky=(E, W, N, S))
         self.mainframe.add(self.left_panel, weight=1)
@@ -157,7 +161,10 @@ class Orchestrator:
         self._initialize_search_results()
 
     def validate_search(self, search_str: str):
-        return all(map(str.isalnum, search_str.split()))
+        valid = all(map(str.isalnum, search_str.split()))
+        if valid:
+            self.left_panel.event_generate('<<searchbar-update>>')
+        return valid
     
     def update_filter(self, ref, val_, *args):
         val = val_.get()
