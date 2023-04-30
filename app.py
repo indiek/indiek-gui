@@ -21,7 +21,7 @@ class Orchestrator:
         right_panel_style = ttk.Style()
         right_panel_style.configure(
             'Rightpanel.TFrame', 
-            font='helvetica 24', 
+            # font='helvetica 24', 
             background='green', 
             padding=10
         )
@@ -93,7 +93,7 @@ class Orchestrator:
         #----------------
         # SEARCHBAR BLOCK
         #----------------
-        ttk.Label(self.left_panel, text="search").grid(column=0, row=1, sticky='news')
+        ttk.Label(self.left_panel, text="search").grid(column=0, row=1, sticky='e')
         self.search_var = StringVar()
 
         searchbar_style_name = 'Searchbar.TFrame'
@@ -106,13 +106,12 @@ class Orchestrator:
         )
         searchbar= ttk.Frame(
                 self.left_panel, 
-                borderwidth=10,
                 style=searchbar_style_name,
             )
         searchbar.grid(row=1, column=1, sticky=(E, W, N, S))
 
-        entry_style = ttk.Style()
-        entry_style.configure('Searchbar.TEntry')
+        # entry_style = ttk.Style()
+        # entry_style.configure('Searchbar.TEntry')
 
         # inspired from: https://tkdocs.com/tutorial/widgets.html#entry (Validation section)
         search_entry = ttk.Entry(
@@ -120,11 +119,12 @@ class Orchestrator:
                 textvariable=self.search_var,
                 validate='key', 
                 validatecommand=(root.register(self.validate_search), '%P'),
-                style='Searchbar.TEntry',
-                width=300
+                font=('Century 8'),
+                # style='Searchbar.TEntry',
+                width=65
                 # borderwidth=15
             )
-        search_entry.grid(row=0, column=0, sticky='news', pady=20)
+        search_entry.grid(row=0, column=0, sticky='news', pady=2)
 
 
     def validate_search(self, search_str: str):
