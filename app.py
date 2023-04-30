@@ -10,6 +10,7 @@ class Orchestrator:
         self.filter_callbacks = {}
         self.filter_buttons = {}
         self.filter_vars = {}
+
         self.mainframe = ttk.Frame(root)
         self.mainframe.grid(column=0, row=0, sticky='news')
         self.mainframe.columnconfigure(0, weight=1)
@@ -39,7 +40,6 @@ class Orchestrator:
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
-
         #-----------------
         # LEFT PANEL STYLE
         #-----------------
@@ -67,7 +67,7 @@ class Orchestrator:
         #--------------------
         # SEARCH FILTER BLOCK
         #--------------------
-        ttk.Label(self.left_panel, text="filter").grid(column=0, row=0, sticky=(N,E,S))
+        ttk.Label(self.left_panel, text="filter").grid(column=0, row=0, sticky=(N, W, E, S))
         
         check_buttons_frame = ttk.Frame(self.left_panel, borderwidth=5)
         check_buttons_frame.grid(column=1, row=0, sticky='news')
@@ -88,12 +88,12 @@ class Orchestrator:
                     onvalue=cat,
                     command=self.filter_callbacks[cat],
                     offvalue=''
-                ).grid(row=0, column=colix)
+                ).grid(row=0, column=colix, sticky=(N, E, S, W))
             
         #----------------
         # SEARCHBAR BLOCK
         #----------------
-        ttk.Label(self.left_panel, text="search").grid(column=0, row=1, sticky='e')
+        ttk.Label(self.left_panel, text="search").grid(column=0, row=1, sticky='ens')
         self.search_var = StringVar()
 
         searchbar_style_name = 'Searchbar.TFrame'
