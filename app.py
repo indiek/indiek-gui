@@ -22,7 +22,6 @@ class Orchestrator:
         right_panel_style = ttk.Style()
         right_panel_style.configure(
             'Rightpanel.TLabelframe', 
-            # font='helvetica 24', 
             background='green', 
             padding=10
         )
@@ -31,7 +30,6 @@ class Orchestrator:
 
         self.view_panel= ttk.Labelframe(
                 self.right_panel, 
-                # borderwidth=5, 
                 relief="ridge", 
                 height=400,
                 width=800,
@@ -40,7 +38,6 @@ class Orchestrator:
             )
         self.edit_panel= ttk.Labelframe(
                 self.right_panel, 
-                # borderwidth=5, 
                 relief="ridge", 
                 heigh=500,
                 style='Rightpanel.TLabelframe',
@@ -48,7 +45,6 @@ class Orchestrator:
             )
         self.right_panel.add(self.view_panel, weight=1)
         self.right_panel.add(self.edit_panel, weight=1)
-        # self.right_panel.grid(row=0, column=1, sticky=(E, N, S, W))
 
     def _initialize_filter_block(self):
         ttk.Label(self.left_panel, text="filter").grid(column=0, row=0, sticky=(N, W, E, S))
@@ -73,7 +69,6 @@ class Orchestrator:
                     command=self.filter_callbacks[cat],
                     offvalue=''
                 ).grid(row=0, column=colix, sticky=(N, E, S, W))
-        # check_buttons_frame.event_add('<<filter-update>>', )
 
     def _initialize_searchbar(self):
         ttk.Label(self.left_panel, text="search").grid(column=0, row=1, sticky='ens')
@@ -93,9 +88,6 @@ class Orchestrator:
             )
         searchbar.grid(row=1, column=1, sticky=(E, W, N, S))
 
-        # entry_style = ttk.Style()
-        # entry_style.configure('Searchbar.TEntry')
-
         # inspired from: https://tkdocs.com/tutorial/widgets.html#entry (Validation section)
         search_entry = ttk.Entry(
                 searchbar, 
@@ -103,12 +95,12 @@ class Orchestrator:
                 validate='key', 
                 validatecommand=(root.register(self.validate_search), '%P'),
                 font=('Century 9'),
-                # style='Searchbar.TEntry',
                 width=65
-                # borderwidth=15
             )
         search_entry.grid(row=0, column=0, sticky='news', pady=2)
         search_entry.bind("<Return>", self.collect_search)
+        search_entry.bind("<FocusOut>", self.collect_search)
+        search_entry.bind("<KeyRelease>", self.collect_search)
 
     def _initialize_search_results(self):
         self.search_results_str = StringVar(value='Initial State')
@@ -118,8 +110,6 @@ class Orchestrator:
                 wraplength=320,  # pixels
             )
         self.search_results.grid(row=2, column=0, columnspan=2, sticky='news', padx=15, pady=15)
-
-        # self.search_results.bind('<<filter-update>>', lambda e: self.collect_search())
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
@@ -146,14 +136,8 @@ class Orchestrator:
                 style=left_panel_style_name,
                 text='Search'
             )
-        # self.left_panel.event_add(
-        #         '<<search-update>>', 
-        #         '<<filter-update>>',
-        #         '<<searchbar-update>>'
-        #     )
-        self.left_panel.bind('<<searchbar-update>>', self.collect_search)
         self.left_panel.bind('<<filter-update>>', self.collect_search)
-        # self.left_panel.grid(row=0, column=0, sticky=(E, W, N, S))
+
         self.mainframe.add(self.left_panel, weight=1)
 
         self._initialize_filter_block()           
@@ -162,8 +146,6 @@ class Orchestrator:
 
     def validate_search(self, search_str: str):
         valid = all(map(str.isalnum, search_str.split()))
-        if valid:
-            self.left_panel.event_generate('<<searchbar-update>>')
         return valid
     
     def update_filter(self, ref, val_, *args):
