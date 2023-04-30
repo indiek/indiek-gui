@@ -18,7 +18,9 @@ class Orchestrator:
         self.mainframe.rowconfigure(0, weight=1)
 
         self._initialize_left_panel()
+        self._initialize_right_panel()
 
+    def _initialize_right_panel(self):
         right_panel_style = ttk.Style()
         right_panel_style.configure(
             'Rightpanel.TLabelframe', 
@@ -36,6 +38,7 @@ class Orchestrator:
                 style='Rightpanel.TLabelframe',
                 text='View'
             )
+        
         self.edit_panel= ttk.Labelframe(
                 self.right_panel, 
                 relief="ridge", 
@@ -43,13 +46,16 @@ class Orchestrator:
                 style='Rightpanel.TLabelframe',
                 text='Edit'
             )
+        
         self.right_panel.add(self.view_panel, weight=1)
         self.right_panel.add(self.edit_panel, weight=1)
 
     def _initialize_filter_block(self):
-        ttk.Label(self.left_panel, text="filter").grid(column=0, row=0, sticky=(N, W, E, S))
+        (ttk
+         .Label(self.left_search_pane, text="filter")
+         .grid(column=0, row=0, sticky=(N, W, E, S)))
         
-        self.check_buttons_frame = ttk.Frame(self.left_panel, borderwidth=5)
+        self.check_buttons_frame = ttk.Frame(self.left_search_pane, borderwidth=5)
         self.check_buttons_frame.grid(column=1, row=0, sticky='news')
 
         cats = ['Definitions', 'Theorems', 'Proofs']
@@ -71,7 +77,7 @@ class Orchestrator:
                 ).grid(row=0, column=colix, sticky=(N, E, S, W))
 
     def _initialize_searchbar(self):
-        ttk.Label(self.left_panel, text="search").grid(column=0, row=1, sticky='ens')
+        ttk.Label(self.left_search_pane, text="search").grid(column=0, row=1, sticky='ens')
         self.search_var = StringVar()
 
         searchbar_style_name = 'Searchbar.TFrame'
@@ -83,7 +89,7 @@ class Orchestrator:
             padding=5
         )
         searchbar= ttk.Frame(
-                self.left_panel, 
+                self.left_search_pane, 
                 style=searchbar_style_name,
             )
         searchbar.grid(row=1, column=1, sticky=(E, W, N, S))
@@ -95,7 +101,7 @@ class Orchestrator:
                 validate='key', 
                 validatecommand=(root.register(self.validate_search), '%P'),
                 font=('Century 9'),
-                width=65
+                # width=65
             )
         search_entry.grid(row=0, column=0, sticky='news', pady=2)
         search_entry.bind("<Return>", self.collect_search)
@@ -103,13 +109,20 @@ class Orchestrator:
         search_entry.bind("<KeyRelease>", self.collect_search)
 
     def _initialize_search_results(self):
+        self.results_window = ttk.PanedWindow(self.left_panel, orient=VERTICAL)
+        self.left_panel.add(self.results_window, weight=3)
+
+        self.result_pane = ttk.Labelframe(self.results_window, text='Results')
+        self.result_pane.grid()
+        self.results_window.add(self.result_pane)
+
         self.search_results_str = StringVar(value='Initial State')
         self.search_results = ttk.Label(
-                self.left_panel, 
+                self.result_pane, 
                 textvariable=self.search_results_str,
-                wraplength=320,  # pixels
+                wraplength=500,  # pixels
             )
-        self.search_results.grid(row=2, column=0, columnspan=2, sticky='news', padx=15, pady=15)
+        self.search_results.grid(row=0, column=0, sticky='news', padx=15, pady=15)
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
@@ -126,19 +139,21 @@ class Orchestrator:
             padding=10
         )
 
-        #-----------------
-        # LEFT PANEL FRAME
-        #-----------------
-        self.left_panel = ttk.Labelframe(
-                self.mainframe, 
-                # borderwidth=5, 
+        #-------------------------
+        # LEFT PANEL WINDOWED PANE
+        #-------------------------
+        self.left_panel = ttk.PanedWindow(self.mainframe, orient=VERTICAL)
+        self.mainframe.add(self.left_panel, weight=1)
+
+        self.left_search_pane = ttk.Labelframe(
+                self.left_panel, 
                 relief="ridge", 
                 style=left_panel_style_name,
                 text='Search'
             )
         self.left_panel.bind('<<filter-update>>', self.collect_search)
 
-        self.mainframe.add(self.left_panel, weight=1)
+        self.left_panel.add(self.left_search_pane, weight=1)
 
         self._initialize_filter_block()           
         self._initialize_searchbar()
