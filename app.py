@@ -153,6 +153,10 @@ class Orchestrator:
                 text='Search'
             )
         self.left_search_pane.grid(column=0, row=0, sticky='news')
+        self.left_search_pane.grid_rowconfigure(0, weight=1)
+        self.left_search_pane.grid_columnconfigure(0, weight=1)
+        self.left_search_pane.grid_rowconfigure(1, weight=1)
+        self.left_search_pane.grid_columnconfigure(1, weight=1)
 
         self.left_panel.add(self.left_search_pane, weight=1)
         self.left_panel.bind('<<filter-update>>', self.collect_search)
