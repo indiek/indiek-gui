@@ -42,7 +42,7 @@ class Orchestrator:
         self.edit_panel= ttk.Labelframe(
                 self.right_panel, 
                 relief="ridge", 
-                heigh=500,
+                height=500,
                 style='Rightpanel.TLabelframe',
                 text='Edit'
             )
@@ -56,7 +56,7 @@ class Orchestrator:
          .grid(column=0, row=0, sticky=(N, W, E, S)))
         
         self.check_buttons_frame = ttk.Frame(self.left_search_pane, borderwidth=5)
-        self.check_buttons_frame.grid(column=1, row=0, sticky='news')
+        self.check_buttons_frame.grid(column=1, row=0, sticky='w')
 
         # setup callbacks for filter's CheckButtons
         cats = ['Definitions', 'Theorems', 'Proofs']
@@ -94,6 +94,8 @@ class Orchestrator:
                 style=searchbar_style_name,
             )
         searchbar.grid(row=1, column=1, sticky=(E, W, N, S))
+        searchbar.grid_columnconfigure(0, weight=1)
+        searchbar.grid_rowconfigure(0, weight=1)
 
         # inspired from: https://tkdocs.com/tutorial/widgets.html#entry (Validation section)
         search_entry = ttk.Entry(
@@ -121,7 +123,7 @@ class Orchestrator:
         self.search_results = ttk.Label(
                 self.result_pane, 
                 textvariable=self.search_results_str,
-                wraplength=500,  # pixels
+                wraplength=400,  # pixels
             )
         self.search_results.grid(row=0, column=0, sticky='news', padx=15, pady=15)
 
@@ -134,7 +136,6 @@ class Orchestrator:
         left_panel_style = ttk.Style()
         left_panel_style.configure(
             left_panel_style_name, 
-            # font='helvetica 24', 
             background='yellow', 
             foreground='black',
             padding=10
@@ -158,7 +159,7 @@ class Orchestrator:
         self.left_search_pane.grid_rowconfigure(1, weight=1)
         self.left_search_pane.grid_columnconfigure(1, weight=1)
 
-        self.left_panel.add(self.left_search_pane, weight=1)
+        self.left_panel.add(self.left_search_pane, weight=0)
         self.left_panel.bind('<<filter-update>>', self.collect_search)
         
         self._initialize_filter_block()           
