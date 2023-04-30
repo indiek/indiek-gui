@@ -38,6 +38,11 @@ class Orchestrator:
         self.right_panel.grid(row=0, column=1, sticky=(E, N, S, W))
 
     def _initialize_left_panel(self):
+        """Setup left panel in main frame."""
+
+        #-----------------
+        # LEFT PANEL STYLE
+        #-----------------
         left_panel_style_name = 'Leftpanel.TFrame'
         left_panel_style = ttk.Style()
         left_panel_style.configure(
@@ -47,18 +52,23 @@ class Orchestrator:
             foreground='black',
             padding=10
         )
+
+        #-----------------
+        # LEFT PANEL FRAME
+        #-----------------
         self.left_panel= ttk.Frame(
                 self.mainframe, 
                 borderwidth=5, 
                 relief="ridge", 
                 style=left_panel_style_name
             )
-
         self.left_panel.grid(row=0, column=0, sticky=(E, W, N, S))
 
+        #--------------------
+        # SEARCH FILTER BLOCK
+        #--------------------
         ttk.Label(self.left_panel, text="filter").grid(column=0, row=0, sticky=(N,E,S))
-        ttk.Label(self.left_panel, text="search").grid(column=0, row=1, sticky='news')
-
+        
         check_buttons_frame = ttk.Frame(self.left_panel, borderwidth=5)
         check_buttons_frame.grid(column=1, row=0, sticky='news')
 
@@ -80,6 +90,45 @@ class Orchestrator:
                     offvalue=''
                 ).grid(row=0, column=colix)
             
+        #----------------
+        # SEARCHBAR BLOCK
+        #----------------
+        ttk.Label(self.left_panel, text="search").grid(column=0, row=1, sticky='news')
+        self.search_var = StringVar()
+
+        searchbar_style_name = 'Searchbar.TFrame'
+        self.searchbar_style = ttk.Style()
+        self.searchbar_style.configure(
+            searchbar_style_name, 
+            background='orange', 
+            foreground='black',
+            padding=5
+        )
+        searchbar= ttk.Frame(
+                self.left_panel, 
+                borderwidth=10,
+                style=searchbar_style_name,
+            )
+        searchbar.grid(row=1, column=1, sticky=(E, W, N, S))
+
+        entry_style = ttk.Style()
+        entry_style.configure('Searchbar.TEntry', font='helvetica 10')
+
+        # inspired from: https://tkdocs.com/tutorial/widgets.html#entry (Validation section)
+        search_entry = ttk.Entry(
+                searchbar, 
+                textvariable=self.search_var,
+                validate='key', 
+                validatecommand=(root.register(self.validate_search), '%P'),
+                style='Searchbar.TEntry',
+                # borderwidth=15
+            )
+        search_entry.grid(row=0, column=0, sticky='news', pady=20)
+
+
+    def validate_search(self, search_str: str):
+        return all(map(str.isalnum, search_str.split()))
+    
     def update_filter(self, ref, val_, *args):
         val = val_.get()
         if val:
