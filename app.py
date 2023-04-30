@@ -3,6 +3,8 @@ from tkinter import *
 from tkinter import ttk
 from functools import partial
 
+WRAP_1 = 380
+ENTRY_DEFAULT_LENGTH = 54
 
 class Orchestrator:
     def __init__(self, root):       
@@ -104,7 +106,7 @@ class Orchestrator:
                 validate='key', 
                 validatecommand=(root.register(self.validate_search), '%P'),
                 font=('Century 9'),
-                # width=65
+                width=ENTRY_DEFAULT_LENGTH
             )
         search_entry.grid(row=0, column=0, sticky='news', pady=2)
         search_entry.bind("<Return>", self.collect_search)
@@ -123,7 +125,7 @@ class Orchestrator:
         self.search_results = ttk.Label(
                 self.result_pane, 
                 textvariable=self.search_results_str,
-                wraplength=400,  # pixels
+                wraplength=WRAP_1,  # pixels
             )
         self.search_results.grid(row=0, column=0, sticky='news', padx=15, pady=15)
 
