@@ -58,13 +58,14 @@ class Orchestrator:
         self.check_buttons_frame = ttk.Frame(self.left_search_pane, borderwidth=5)
         self.check_buttons_frame.grid(column=1, row=0, sticky='news')
 
+        # setup callbacks for filter's CheckButtons
         cats = ['Definitions', 'Theorems', 'Proofs']
         for cat in cats:
             custom_var = StringVar(value='')
             self.filter_vars[cat] = custom_var
             custom_filter = partial(self.update_filter, cat, custom_var)
             self.filter_callbacks[cat] = custom_filter
-
+        # create the check buttons
         for colix, cat in enumerate(cats):
             ttk.Checkbutton(
                     self.check_buttons_frame, 
@@ -151,10 +152,11 @@ class Orchestrator:
                 style=left_panel_style_name,
                 text='Search'
             )
-        self.left_panel.bind('<<filter-update>>', self.collect_search)
+        self.left_search_pane.grid(column=0, row=0, sticky='news')
 
         self.left_panel.add(self.left_search_pane, weight=1)
-
+        self.left_panel.bind('<<filter-update>>', self.collect_search)
+        
         self._initialize_filter_block()           
         self._initialize_searchbar()
         self._initialize_search_results()
