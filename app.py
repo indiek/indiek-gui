@@ -114,20 +114,52 @@ class Orchestrator:
         search_entry.bind("<KeyRelease>", self.collect_search)
 
     def _initialize_search_results(self):
-        self.results_window = ttk.PanedWindow(self.left_panel, orient=VERTICAL)
-        self.left_panel.add(self.results_window, weight=3)
-
-        self.result_pane = ttk.Labelframe(self.results_window, text='Results')
-        self.result_pane.grid()
-        self.results_window.add(self.result_pane)
-
-        self.search_results_str = StringVar(value='Initial State')
-        self.search_results = ttk.Label(
-                self.result_pane, 
-                textvariable=self.search_results_str,
-                wraplength=WRAP_1,  # pixels
+        #--------------
+        # OVERALL FRAME
+        #--------------
+        self.results_frame = ttk.Labelframe(
+            self.left_panel, 
+            text='Results',
+            # style='Result.TLabelframe'
             )
-        self.search_results.grid(row=0, column=0, sticky='news', padx=15, pady=15)
+        self.results_frame.grid(row=0, column=0)
+        self.results_frame.grid_columnconfigure(0, weight=1)
+        self.results_frame.grid_rowconfigure(0, weight=1)
+        self.left_panel.add(self.results_frame, weight=3)
+
+        #---------------------------
+        # VARIABLE SIZE PANED WINDOW
+        #---------------------------
+        self.results_window = ttk.PanedWindow(self.results_frame, orient=VERTICAL)
+        self.results_window.grid(row=0, column=0, sticky='news', padx=2, pady=2)
+        
+        #-------------------
+        # DUMMY RESULT PANES
+        #-------------------
+        self.search_results_str = StringVar(value='Initial State')
+        import random
+        for result_ix in range(60):
+            result_style = ttk.Style()
+
+            random_number = random.randint(0,16777215)
+            hex_number = str(hex(random_number))
+            hex_number ='#'+ hex_number[2:]
+
+            # print(hex_color, type(hex_color))
+            result_style.configure(
+                f'Result{result_ix}.TLabel',
+                background=hex_number,
+                foreground='white'
+            )
+            
+            search_results = ttk.Label(
+                    self.results_window, 
+                    textvariable=self.search_results_str,
+                    wraplength=WRAP_1,  # pixels
+                    style=f'Result{result_ix}.TLabel'
+                )
+            
+            self.results_window.add(search_results, weight=1)
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
