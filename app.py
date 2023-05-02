@@ -2,6 +2,8 @@
 from tkinter import *
 from tkinter import ttk
 from functools import partial
+import random
+
 
 WRAP_1 = 380
 ENTRY_DEFAULT_LENGTH = 54
@@ -123,29 +125,31 @@ class Orchestrator:
             # style='Result.TLabelframe'
             )
         self.results_frame.grid(row=0, column=0)
-        self.results_frame.grid_columnconfigure(0, weight=1)
+        self.results_frame.grid_columnconfigure(0, weight=0)
+        self.results_frame.grid_columnconfigure(1, weight=1)
         self.results_frame.grid_rowconfigure(0, weight=1)
         self.left_panel.add(self.results_frame, weight=3)
         
-        #--------------
-        # OVERALL FRAME
-        #--------------
-        # https://stackoverflow.com/a/3092341
-        scr = ttk.Scrollbar( self.left_panel, orient=VERTICAL, command=self.results_frame.yview)
-        self.results_frame.configure(yscrollcommand=scr.set)
+        #------------------
+        # SCROLLABLE CANVAS
+        #------------------
+        scr = ttk.Scrollbar(self.results_frame, orient=VERTICAL)
+        self.results_canvas = Canvas(
+            self.results_frame, 
+            # scrollregion=(0, 0, 100000, 100000),
+            yscrollcommand=scr.set,
+            background='blue'
+            )
+        scr['command'] = self.results_canvas.yview
+        self.results_canvas.grid(column=1, row=0, sticky=(N, W, E, S))
+        scr.grid(column=0, row=0, sticky=(N, S))
 
-        #---------------------------
-        # VARIABLE SIZE PANED WINDOW
-        #---------------------------
-        self.results_window = ttk.PanedWindow(self.results_frame, orient=VERTICAL)
-        self.results_window.grid(row=0, column=0, sticky='news', padx=2, pady=2)
-        
         #-------------------
         # DUMMY RESULT PANES
         #-------------------
         self.search_results_str = StringVar(value='Initial State')
-        import random
-        for result_ix in range(60):
+
+        for result_ix in range(1):
             result_style = ttk.Style()
 
             random_number = random.randint(0,16777215)
@@ -158,17 +162,23 @@ class Orchestrator:
                 background=hex_number,
                 foreground='white',
                 padding=4,
-                height=10
+                # height=10
             )
             
             search_results = ttk.Label(
-                    self.results_window, 
+                    self.results_canvas, 
                     textvariable=self.search_results_str,
                     wraplength=WRAP_1,  # pixels
                     style=f'Result{result_ix}.TLabel'
                 )
             
-            self.results_window.add(search_results, weight=1)
+            self.results_canvas.create_window(
+                0, 
+                0, 
+                anchor='nw', 
+                window=search_results, 
+                height=40
+                )
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
