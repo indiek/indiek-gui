@@ -126,6 +126,13 @@ class Orchestrator:
         self.results_frame.grid_columnconfigure(0, weight=1)
         self.results_frame.grid_rowconfigure(0, weight=1)
         self.left_panel.add(self.results_frame, weight=3)
+        
+        #--------------
+        # OVERALL FRAME
+        #--------------
+        # https://stackoverflow.com/a/3092341
+        scr = ttk.Scrollbar( self.left_panel, orient=VERTICAL, command=self.results_frame.yview)
+        self.results_frame.configure(yscrollcommand=scr.set)
 
         #---------------------------
         # VARIABLE SIZE PANED WINDOW
