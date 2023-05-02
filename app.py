@@ -149,7 +149,9 @@ class Orchestrator:
             result_style.configure(
                 f'Result{result_ix}.TLabel',
                 background=hex_number,
-                foreground='white'
+                foreground='white',
+                padding=4,
+                height=10
             )
             
             search_results = ttk.Label(
