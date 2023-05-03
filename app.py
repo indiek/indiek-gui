@@ -8,6 +8,9 @@ import random
 WRAP_1 = 380
 ENTRY_DEFAULT_LENGTH = 54
 
+
+
+
 class Orchestrator:
     def __init__(self, root):       
         self.filters = []
@@ -29,6 +32,12 @@ class Orchestrator:
 
         self.mainframe.add(self.left_panel, weight=1)
         self.mainframe.add(self.right_panel, weight=2)
+
+    def setColor(self):
+        self.results_canvas.dtag('all', 'paletteSelected')
+        self.results_canvas.itemconfigure('palette', borderwidth=1)
+        self.results_canvas.addtag('paletteSelected', 'withtag', 'palette%s' % color)
+        self.results_canvas.itemconfigure('paletteSelected', borderwidth=15)
 
     def _initialize_right_panel(self):
         right_panel_style = ttk.Style()
@@ -142,7 +151,7 @@ class Orchestrator:
         # SCROLLABLE CANVAS
         #------------------
         height = 40
-        max_results = 100
+        max_results = 10
         scroll_height = max_results * height
         scroll_width = 300
 
@@ -190,14 +199,17 @@ class Orchestrator:
                 height * result_ix, 
                 anchor='nw', 
                 window=search_results, 
-                height=height
+                height=height,
+                tags=('palette')
                 )
+            # print(f"***{result_id} created***")
             # search_results.bind('<ButtonPress-1>', lambda e: self.populate_view_pane(result_id))
-            self.view_callbacks[result_id] = partial(self.populate_view_pane, result_id)
+            # self.view_callbacks[result_id] = partial(self.populate_view_pane, result_id)
             self.results_canvas.tag_bind(
                 result_id, 
-                '<ButtonPress-1>', 
-                self.view_callbacks[result_id]
+                '<Button-1>', 
+                self.setColor
+                # self.view_callbacks[result_id]
                 )
 
     def populate_view_pane(self, result_id, *args):
