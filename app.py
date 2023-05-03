@@ -15,7 +15,7 @@ class Orchestrator:
         self.filter_buttons = {}
         self.filter_vars = {}
         self.view_callbacks = {}
-        
+
         self.mainframe = ttk.Panedwindow(root, orient=HORIZONTAL)  # ttk.Frame(root)
         self.mainframe.grid(column=0, row=0, sticky='news')
         self.mainframe.columnconfigure(0, weight=1)
@@ -192,7 +192,7 @@ class Orchestrator:
             self.view_callbacks[result_id] = partial(self.populate_view_pane, result_id)
             self.results_canvas.tag_bind(
                 result_id, 
-                '<Button-1>', 
+                '<ButtonPress-1>', 
                 self.view_callbacks[result_id]
                 )
 
