@@ -43,6 +43,9 @@ class Orchestrator:
                 text='View'
             )
         
+        self.view_var = StringVar(value='default view')
+        self.view_label = ttk.Label(self.view_panel, textvariable=self.view_var)
+        
         self.edit_panel= ttk.Labelframe(
                 self.right_panel, 
                 relief="ridge", 
@@ -178,13 +181,17 @@ class Orchestrator:
                     style=f'Result{result_ix}.TLabel'
                 )
             
-            self.results_canvas.create_window(
+            result_id = self.results_canvas.create_window(
                 0, 
                 height * result_ix, 
                 anchor='nw', 
                 window=search_results, 
                 height=height
                 )
+            self.results_canvas.tag_bind(result_id, '<1>', lambda e: self.populate_view_pane(result_id))
+
+    def populate_view_pane(self, result_id):
+        self.view_var.set(result_id)
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
