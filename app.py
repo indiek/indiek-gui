@@ -33,12 +33,6 @@ class Orchestrator:
         self.mainframe.add(self.left_panel, weight=1)
         self.mainframe.add(self.right_panel, weight=2)
 
-    def setColor(self):
-        self.results_canvas.dtag('all', 'paletteSelected')
-        self.results_canvas.itemconfigure('palette', borderwidth=1)
-        self.results_canvas.addtag('paletteSelected', 'withtag', 'palette%s' % color)
-        self.results_canvas.itemconfigure('paletteSelected', borderwidth=15)
-
     def _initialize_right_panel(self):
         right_panel_style = ttk.Style()
         right_panel_style.configure(
@@ -52,26 +46,42 @@ class Orchestrator:
                 self.right_panel, 
                 relief="ridge", 
                 style='Rightpanel.TLabelframe',
-                text='View'
+                text='View/Edit'
             )
         self.view_panel.grid(row=0, column=0, sticky='news')
         self.view_panel.grid_columnconfigure(0, weight=1)
         self.view_panel.grid_rowconfigure(0, weight=1)
 
-        self.view_label = ttk.Label(self.view_panel, textvariable=self.view_var)
-        self.view_label.grid(row=0, column=0, sticky='news')
-        # self.view_label.bind("<Enter>", lambda e: self.populate_view_pane("ENTERED"))
-        # self.view_label.bind("<Leave>", lambda e: self.populate_view_pane("LEFT"))
-        # self.view_label.bind('<ButtonPress-1>', lambda e: self.populate_view_pane("MOSUE PRESSED"))
-        self.edit_panel= ttk.Labelframe(
+        self._populate_view_notebook()
+
+        self.project_panel= ttk.Labelframe(
                 self.right_panel, 
                 relief="ridge", 
                 style='Rightpanel.TLabelframe',
-                text='Edit'
+                text='Project'
             )
         
         self.right_panel.add(self.view_panel, weight=1)
-        self.right_panel.add(self.edit_panel, weight=1)
+        self.right_panel.add(self.project_panel, weight=1)
+    
+    def _populate_view_notebook(self):
+        self.view_nb = ttk.Notebook(self.view_panel)
+        self.view_nb.grid(row=0, column=0, sticky='news')
+
+        # View tab
+        view = ttk.Frame(self.view_nb)
+        view.grid(row=0, column=0, sticky='news')
+        view.grid_rowconfigure(0, weight=1)
+        view.grid_columnconfigure(0, weight=1)
+
+        view_label = ttk.Label(view, textvariable=self.view_var)
+        view_label.grid(row=0, column=0, sticky='news')
+
+        # Edit tab
+        edit = ttk.Frame(self.view_nb)
+
+        self.view_nb.add(view, text='View')
+        self.view_nb.add(edit, text='Edit')
 
     def _initialize_filter_block(self):
         (ttk
@@ -205,15 +215,6 @@ class Orchestrator:
                 height=height,
                 tags=('palette')
                 )
-            # print(f"***{result_id} created***")
-            
-            # 
-            # self.results_canvas.tag_bind(
-            #     result_id, 
-            #     '<Button-1>', 
-            #     self.setColor
-            #     # 
-            #     )
 
     def populate_view_pane(self, result_id, *args):
         self.view_var.set(f"{result_id=}")
