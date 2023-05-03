@@ -53,7 +53,7 @@ class Orchestrator:
         self.view_label.grid(row=0, column=0, sticky='news')
         self.view_label.bind("<Enter>", lambda e: self.populate_view_pane("ENTERED"))
         self.view_label.bind("<Leave>", lambda e: self.populate_view_pane("LEFT"))
-
+        self.view_label.bind('<ButtonPress-1>', lambda e: self.populate_view_pane("MOSUE PRESSED"))
         self.edit_panel= ttk.Labelframe(
                 self.right_panel, 
                 relief="ridge", 
@@ -202,7 +202,6 @@ class Orchestrator:
 
     def populate_view_pane(self, result_id):
         self.view_var.set(f"{result_id=}")
-        print(f'{result_id=}')
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
