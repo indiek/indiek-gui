@@ -133,10 +133,16 @@ class Orchestrator:
         #------------------
         # SCROLLABLE CANVAS
         #------------------
+        height = 40
+        epsilon = .1
+        max_results = 100
+        scroll_height = max_results * height
+        scroll_width = 300
+
         scr = ttk.Scrollbar(self.results_frame, orient=VERTICAL)
         self.results_canvas = Canvas(
             self.results_frame, 
-            # scrollregion=(0, 0, 100000, 100000),
+            scrollregion=(0, 0, scroll_width, scroll_height),
             yscrollcommand=scr.set,
             background='blue'
             )
@@ -149,7 +155,7 @@ class Orchestrator:
         #-------------------
         self.search_results_str = StringVar(value='Initial State')
 
-        for result_ix in range(1):
+        for result_ix in range(max_results):
             result_style = ttk.Style()
 
             random_number = random.randint(0,16777215)
@@ -174,10 +180,10 @@ class Orchestrator:
             
             self.results_canvas.create_window(
                 0, 
-                0, 
+                height * result_ix, 
                 anchor='nw', 
                 window=search_results, 
-                height=40
+                height=height
                 )
 
     def _initialize_left_panel(self):
