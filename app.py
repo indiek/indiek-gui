@@ -60,9 +60,9 @@ class Orchestrator:
 
         self.view_label = ttk.Label(self.view_panel, textvariable=self.view_var)
         self.view_label.grid(row=0, column=0, sticky='news')
-        self.view_label.bind("<Enter>", lambda e: self.populate_view_pane("ENTERED"))
-        self.view_label.bind("<Leave>", lambda e: self.populate_view_pane("LEFT"))
-        self.view_label.bind('<ButtonPress-1>', lambda e: self.populate_view_pane("MOSUE PRESSED"))
+        # self.view_label.bind("<Enter>", lambda e: self.populate_view_pane("ENTERED"))
+        # self.view_label.bind("<Leave>", lambda e: self.populate_view_pane("LEFT"))
+        # self.view_label.bind('<ButtonPress-1>', lambda e: self.populate_view_pane("MOSUE PRESSED"))
         self.edit_panel= ttk.Labelframe(
                 self.right_panel, 
                 relief="ridge", 
@@ -151,7 +151,7 @@ class Orchestrator:
         # SCROLLABLE CANVAS
         #------------------
         height = 40
-        max_results = 10
+        max_results = 100
         scroll_height = max_results * height
         scroll_width = 300
 
@@ -193,8 +193,11 @@ class Orchestrator:
                     wraplength=WRAP_1,  # pixels
                     style=f'Result{result_ix}.TLabel'
                 )
+            self.view_callbacks[result_ix] = partial(self.populate_view_pane, result_ix)
+            # wasclicked = lambda e: self.populate_view_pane(result_ix)
+            search_results.bind('<Button-1>', self.view_callbacks[result_ix])
             
-            result_id = self.results_canvas.create_window(
+            _ = self.results_canvas.create_window(
                 0, 
                 height * result_ix, 
                 anchor='nw', 
@@ -203,14 +206,14 @@ class Orchestrator:
                 tags=('palette')
                 )
             # print(f"***{result_id} created***")
-            # search_results.bind('<ButtonPress-1>', lambda e: self.populate_view_pane(result_id))
-            # self.view_callbacks[result_id] = partial(self.populate_view_pane, result_id)
-            self.results_canvas.tag_bind(
-                result_id, 
-                '<Button-1>', 
-                self.setColor
-                # self.view_callbacks[result_id]
-                )
+            
+            # 
+            # self.results_canvas.tag_bind(
+            #     result_id, 
+            #     '<Button-1>', 
+            #     self.setColor
+            #     # 
+            #     )
 
     def populate_view_pane(self, result_id, *args):
         self.view_var.set(f"{result_id=}")
