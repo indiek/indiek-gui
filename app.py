@@ -192,7 +192,7 @@ class Orchestrator:
                 window=search_results, 
                 height=height
                 )
-            
+            # search_results.bind('<ButtonPress-1>', lambda e: self.populate_view_pane(result_id))
             self.view_callbacks[result_id] = partial(self.populate_view_pane, result_id)
             self.results_canvas.tag_bind(
                 result_id, 
@@ -200,7 +200,7 @@ class Orchestrator:
                 self.view_callbacks[result_id]
                 )
 
-    def populate_view_pane(self, result_id):
+    def populate_view_pane(self, result_id, *args):
         self.view_var.set(f"{result_id=}")
 
     def _initialize_left_panel(self):
