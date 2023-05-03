@@ -14,7 +14,8 @@ class Orchestrator:
         self.filter_callbacks = {}
         self.filter_buttons = {}
         self.filter_vars = {}
-
+        self.view_callbacks = {}
+        
         self.mainframe = ttk.Panedwindow(root, orient=HORIZONTAL)  # ttk.Frame(root)
         self.mainframe.grid(column=0, row=0, sticky='news')
         self.mainframe.columnconfigure(0, weight=1)
@@ -29,7 +30,7 @@ class Orchestrator:
         right_panel_style.configure(
             'Rightpanel.TLabelframe', 
             background='green', 
-            padding=10
+            padding=10,
         )
         self.right_panel = ttk.PanedWindow(self.mainframe, orient=VERTICAL)
         self.mainframe.add(self.right_panel, weight=2)
@@ -37,19 +38,20 @@ class Orchestrator:
         self.view_panel= ttk.Labelframe(
                 self.right_panel, 
                 relief="ridge", 
-                height=400,
-                width=800,
                 style='Rightpanel.TLabelframe',
                 text='View'
             )
-        
+        self.view_panel.grid(row=0, column=0, sticky='news')
+        self.view_panel.grid_columnconfigure(0, weight=1)
+        self.view_panel.grid_rowconfigure(0, weight=1)
+
         self.view_var = StringVar(value='default view')
         self.view_label = ttk.Label(self.view_panel, textvariable=self.view_var)
-        
+        self.view_label.grid(row=0, column=0, sticky='news')
+
         self.edit_panel= ttk.Labelframe(
                 self.right_panel, 
                 relief="ridge", 
-                height=500,
                 style='Rightpanel.TLabelframe',
                 text='Edit'
             )
@@ -125,7 +127,6 @@ class Orchestrator:
         self.results_frame = ttk.Labelframe(
             self.left_panel, 
             text='Results',
-            # style='Result.TLabelframe'
             )
         self.results_frame.grid(row=0, column=0)
         self.results_frame.grid_columnconfigure(0, weight=0)
@@ -137,7 +138,6 @@ class Orchestrator:
         # SCROLLABLE CANVAS
         #------------------
         height = 40
-        epsilon = .1
         max_results = 100
         scroll_height = max_results * height
         scroll_width = 300
@@ -188,10 +188,17 @@ class Orchestrator:
                 window=search_results, 
                 height=height
                 )
-            self.results_canvas.tag_bind(result_id, '<1>', lambda e: self.populate_view_pane(result_id))
+            
+            self.view_callbacks[result_id] = partial(self.populate_view_pane, result_id)
+            self.results_canvas.tag_bind(
+                result_id, 
+                '<Button-1>', 
+                self.view_callbacks[result_id]
+                )
 
     def populate_view_pane(self, result_id):
-        self.view_var.set(result_id)
+        self.view_var.set(f"{result_id=}")
+        print(f'{result_id=}')
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
