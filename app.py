@@ -26,7 +26,7 @@ class Orchestrator:
 
         self._initialize_right_panel()
         self._initialize_left_panel()
-        
+
         self.mainframe.add(self.left_panel, weight=1)
         self.mainframe.add(self.right_panel, weight=2)
 
@@ -51,6 +51,8 @@ class Orchestrator:
 
         self.view_label = ttk.Label(self.view_panel, textvariable=self.view_var)
         self.view_label.grid(row=0, column=0, sticky='news')
+        self.view_label.bind("<Enter>", lambda e: self.populate_view_pane("ENTERED"))
+        self.view_label.bind("<Leave>", lambda e: self.populate_view_pane("LEFT"))
 
         self.edit_panel= ttk.Labelframe(
                 self.right_panel, 
