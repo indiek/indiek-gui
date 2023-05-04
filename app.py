@@ -81,6 +81,13 @@ class Orchestrator:
 
         # Edit tab
         edit = ttk.Frame(self.view_nb)
+        edit.grid(row=0, column=0, sticky='news')
+        edit.grid_rowconfigure(0, weight=1)
+        edit.grid_columnconfigure(0, weight=1)
+
+        text = Text(edit, width=40, height=10)
+        text.insert('1.0', self.view_var.get())
+        text.grid(row=0, column=0, sticky='news')
 
         self.view_nb.add(view, text='View')
         self.view_nb.add(edit, text='Edit')
