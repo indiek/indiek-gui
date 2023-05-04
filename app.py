@@ -85,9 +85,9 @@ class Orchestrator:
         edit.grid_rowconfigure(0, weight=1)
         edit.grid_columnconfigure(0, weight=1)
 
-        text = Text(edit, width=40, height=10)
-        text.insert('1.0', self.view_var.get())
-        text.grid(row=0, column=0, sticky='news')
+        self.text = Text(edit, width=40, height=10)
+        self.text.insert('1.0', self.view_var.get())
+        self.text.grid(row=0, column=0, sticky='news')
 
         self.view_nb.add(view, text='View')
         self.view_nb.add(edit, text='Edit')
@@ -225,6 +225,8 @@ class Orchestrator:
     def populate_view_pane(self, result_id, *args):
         pop_str = self.search_results_str[result_id].get()
         self.view_var.set(pop_str)
+        self.text.delete('1.0', 'end')
+        self.text.insert('1.0', self.view_var.get())
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
