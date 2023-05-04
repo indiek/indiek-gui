@@ -19,7 +19,7 @@ class Orchestrator:
         self.filter_buttons = {}
         self.filter_vars = {}
         self.view_callbacks = {}
-        self.view_var = StringVar(value='default view')
+        self.view_var = [StringVar(value='default view'), None]
         self.search_var = StringVar()
         self.search_results_str = [StringVar(value=f'{i}') for i in range(self.max_results)]
 
@@ -77,12 +77,17 @@ class Orchestrator:
         view.grid_columnconfigure(0, weight=1)
         view.grid_columnconfigure(1, weight=0)
 
-        view_label = ttk.Label(view, textvariable=self.view_var)
+        view_label = ttk.Label(view, textvariable=self.view_var[0])
         view_label.grid(row=0, column=0, sticky='news')
         # TODO: add scrollbar?
 
-        edit_button = ttk.Button(view, text='Edit', command=self.switch_to_edit)
-        edit_button.grid(row=0, column=1)
+        self.edit_button = ttk.Button(
+            view, 
+            text='Edit', 
+            command=self.switch_to_edit,
+            state='disabled'
+            )
+        self.edit_button.grid(row=0, column=1)
 
         # Edit tab
         edit = ttk.Frame(self.view_nb)
@@ -95,7 +100,7 @@ class Orchestrator:
         save_button.grid(row=0, column=1)
 
         self.text = Text(edit, width=40, height=10)
-        self.text.insert('1.0', self.view_var.get())
+        self.text.insert('1.0', self.view_var[0].get())
         self.text.grid(row=0, column=0, sticky='news')
 
         self.view_nb.add(view, text='View')
@@ -107,11 +112,14 @@ class Orchestrator:
         self.view_nb.select(edit_id)
 
     def switch_to_view(self):
+        """When focus is on Edit tab; save and switch to View tab."""
         edit_id = 1
         view_id = 0
 
         # save text
-        self.view_var.set(self.text.get('1.0', 'end'))
+        self.view_var[0].set(self.text.get('1.0', 'end'))
+        # and propagate to mock DB
+        self.search_results_str[self.view_var[1]].set(self.view_var[0].get())
 
         # hide editor
         self.view_nb.tab(edit_id, state='hidden')
@@ -251,9 +259,12 @@ class Orchestrator:
 
     def populate_view_pane(self, result_id, *args):
         pop_str = self.search_results_str[result_id].get()
-        self.view_var.set(pop_str)
+        self.view_var[0].set(pop_str)
+        self.view_var[1] = result_id
+        self.edit_button['state'] = 'normal'
+
         self.text.delete('1.0', 'end')
-        self.text.insert('1.0', self.view_var.get())
+        self.text.insert('1.0', self.view_var[0].get())
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
