@@ -56,7 +56,7 @@ class Orchestrator:
 
         self._populate_view_notebook()
 
-        self.project_panel= ttk.Labelframe(
+        self.project_panel = ttk.Labelframe(
                 self.right_panel, 
                 relief="ridge", 
                 style='Rightpanel.TLabelframe',
@@ -75,22 +75,49 @@ class Orchestrator:
         view.grid(row=0, column=0, sticky='news')
         view.grid_rowconfigure(0, weight=1)
         view.grid_columnconfigure(0, weight=1)
+        view.grid_columnconfigure(1, weight=0)
 
         view_label = ttk.Label(view, textvariable=self.view_var)
         view_label.grid(row=0, column=0, sticky='news')
+        # TODO: add scrollbar?
+
+        edit_button = ttk.Button(view, text='Edit', command=self.switch_to_edit)
+        edit_button.grid(row=0, column=1)
 
         # Edit tab
         edit = ttk.Frame(self.view_nb)
         edit.grid(row=0, column=0, sticky='news')
         edit.grid_rowconfigure(0, weight=1)
         edit.grid_columnconfigure(0, weight=1)
+        edit.grid_columnconfigure(1, weight=0)
+
+        save_button = ttk.Button(edit, text='Save', command=self.switch_to_view)
+        save_button.grid(row=0, column=1)
 
         self.text = Text(edit, width=40, height=10)
         self.text.insert('1.0', self.view_var.get())
         self.text.grid(row=0, column=0, sticky='news')
 
         self.view_nb.add(view, text='View')
-        self.view_nb.add(edit, text='Edit')
+        self.view_nb.add(edit, text='Edit', state='hidden')
+
+    def switch_to_edit(self):
+        edit_id = 1
+        self.view_nb.tab(edit_id, state='normal')
+        self.view_nb.select(edit_id)
+
+    def switch_to_view(self):
+        edit_id = 1
+        view_id = 0
+
+        # save text
+        self.view_var.set(self.text.get('1.0', 'end'))
+
+        # hide editor
+        self.view_nb.tab(edit_id, state='hidden')
+
+        # focus back on view
+        self.view_nb.select(view_id)
 
     def _initialize_filter_block(self):
         (ttk
