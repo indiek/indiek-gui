@@ -12,7 +12,8 @@ ENTRY_DEFAULT_LENGTH = 54
 
 
 class Orchestrator:
-    def __init__(self, root):       
+    def __init__(self, root, max_results: int = 100):
+        self.max_results = max_results       
         self.filters = []
         self.filter_callbacks = {}
         self.filter_buttons = {}
@@ -20,6 +21,7 @@ class Orchestrator:
         self.view_callbacks = {}
         self.view_var = StringVar(value='default view')
         self.search_var = StringVar()
+        self.search_results_str = [StringVar(value=f'{i}') for i in range(self.max_results)]
 
         self.mainframe = ttk.Panedwindow(root, orient=HORIZONTAL)  # ttk.Frame(root)
         self.mainframe.grid(column=0, row=0, sticky='news')
@@ -161,8 +163,7 @@ class Orchestrator:
         # SCROLLABLE CANVAS
         #------------------
         height = 40
-        max_results = 100
-        scroll_height = max_results * height
+        scroll_height = self.max_results * height
         scroll_width = 300
 
         scr = ttk.Scrollbar(self.results_frame, orient=VERTICAL)
@@ -179,9 +180,7 @@ class Orchestrator:
         #-------------------
         # DUMMY RESULT PANES
         #-------------------
-        self.search_results_str = StringVar(value='Initial State')
-
-        for result_ix in range(max_results):
+        for result_ix in range(self.max_results):
             result_style = ttk.Style()
 
             random_number = random.randint(0,16777215)
@@ -199,7 +198,7 @@ class Orchestrator:
             
             search_results = ttk.Label(
                     self.results_canvas, 
-                    textvariable=self.search_results_str,
+                    textvariable=self.search_results_str[result_ix],
                     wraplength=WRAP_1,  # pixels
                     style=f'Result{result_ix}.TLabel'
                 )
@@ -274,7 +273,8 @@ class Orchestrator:
         vars = {}
         vars['filters'] = self.filters
         vars['search'] = self.search_var.get()
-        self.search_results_str.set(str(vars))
+        for ix, string_var in enumerate(self.search_results_str):
+            string_var.set(str(ix) + str(vars))
 
 if __name__ == '__main__':
     # import sys
