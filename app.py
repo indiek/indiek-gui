@@ -216,7 +216,8 @@ class Orchestrator:
                 )
 
     def populate_view_pane(self, result_id, *args):
-        self.view_var.set(f"{result_id=}")
+        pop_str = self.search_results_str[result_id].get()
+        self.view_var.set(pop_str)
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
