@@ -13,16 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 
-## [0.1.2]
-### Added
-### Changed
-### Deprecated
-### Removed
-### Fixed
-### Security
+## [0.0.1]
+First release of indiek-gui. 
 
-## [0.1.1]
-First release of indiek-core. 
-
-[unreleased]: https://github.com/indiek/indiek.core/releases/tag/v0.1.1...HEAD
-[0.1.1]: https://github.com/indiek/indiek.core/releases/tag/v0.1.1
+[unreleased]: https://github.com/indiek/indiek.core/releases/tag/v0.0.1...HEAD
+[0.0.1]: https://github.com/indiek/indiek-gui/releases/tag/v0.0.1

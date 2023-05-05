@@ -11,6 +11,7 @@ ENTRY_DEFAULT_LENGTH = 54
 
 class Orchestrator:
     def __init__(self, root, max_results: int = 100):
+        self.root = root
         self.max_results = max_results
         self.filters = []
         self.filter_callbacks = {}
@@ -23,7 +24,7 @@ class Orchestrator:
             StringVar(value=f'{i}') for i in range(self.max_results)]
 
         self.mainframe = ttk.Panedwindow(
-            root, orient=HORIZONTAL)  # ttk.Frame(root)
+            self.root, orient=HORIZONTAL)  # ttk.Frame(root)
         self.mainframe.grid(column=0, row=0, sticky='news')
         self.mainframe.columnconfigure(0, weight=1)
         self.mainframe.columnconfigure(1, weight=2)
@@ -181,7 +182,7 @@ class Orchestrator:
             searchbar,
             textvariable=self.search_var,
             validate='key',
-            validatecommand=(root.register(self.validate_search), '%P'),
+            validatecommand=(self.root.register(self.validate_search), '%P'),
             font=('Century 9'),
             width=ENTRY_DEFAULT_LENGTH
         )

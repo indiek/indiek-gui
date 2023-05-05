@@ -12,6 +12,15 @@ To develop, use the [dev] dependency specification, e.g.:
 Or from the cloned repo's top-level in editable mode:
 ``pip install -e .[dev]``
 
+==========
+Quickstart
+==========
+Call ``indiek-gui`` from your terminal to launch the GUI.
+
+..  code-block:: bash
+
+    indiek-gui
+
 =====
 Tests
 =====
