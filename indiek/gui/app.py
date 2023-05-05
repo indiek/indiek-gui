@@ -3,7 +3,13 @@ from tkinter import *
 from tkinter import ttk
 from functools import partial
 import random
+from indiek.core.search import list_all_items
+from indiek.core.items import Item as CoreItem
+from indiek.gui.items import core_to_gui_item, GUIItem
+from . import __version__
 
+initial_item = CoreItem(name="dummy item", content="dummy content")
+initial_item.to_db().save()
 
 WRAP_1 = 380
 ENTRY_DEFAULT_LENGTH = 54
@@ -22,6 +28,11 @@ class Orchestrator:
         self.search_var = StringVar()
         self.search_results_str = [
             StringVar(value=f'{i}') for i in range(self.max_results)]
+        self.search_results_list = []
+        for core_item, str_var in zip(list_all_items(), self.search_results_str):
+            gui_item = core_to_gui_item(core_item)
+            self.search_results_list.append(gui_item)
+            str_var.set(gui_item.display())
 
         self.mainframe = ttk.Panedwindow(
             self.root, orient=HORIZONTAL)  # ttk.Frame(root)
@@ -226,31 +237,15 @@ class Orchestrator:
         # -------------------
         # DUMMY RESULT PANES
         # -------------------
-        for result_ix in range(self.max_results):
-            result_style = ttk.Style()
-
-            random_number = random.randint(0, 16777215)
-            hex_number = str(hex(random_number))
-            hex_number = '#' + hex_number[2:]
-
-            # print(hex_color, type(hex_color))
-            result_style.configure(
-                f'Result{result_ix}.TLabel',
-                background=hex_number,
-                foreground='white',
-                padding=4,
-                # height=10
-            )
-
+        for result_ix, gui_item in enumerate(self.search_results_list):
             search_results = ttk.Label(
                 self.results_canvas,
                 textvariable=self.search_results_str[result_ix],
                 wraplength=WRAP_1,  # pixels
-                style=f'Result{result_ix}.TLabel'
             )
             self.view_callbacks[result_ix] = partial(
-                self.populate_view_pane, result_ix)
-            # wasclicked = lambda e: self.populate_view_pane(result_ix)
+                self.populate_view_pane, gui_item, result_ix)
+
             search_results.bind('<Button-1>', self.view_callbacks[result_ix])
 
             _ = self.results_canvas.create_window(
@@ -262,10 +257,13 @@ class Orchestrator:
                 tags=('palette')
             )
 
-    def populate_view_pane(self, result_id, *args):
-        pop_str = self.search_results_str[result_id].get()
+    def populate_view_pane(self, gui_item: GUIItem, result_id, *args):
+        pop_str = gui_item.display()
+
         self.view_var[0].set(pop_str)
+        # TODO: rethink logic of line below
         self.view_var[1] = result_id
+
         self.edit_button['state'] = 'normal'
 
         self.text.delete('1.0', 'end')
@@ -326,13 +324,12 @@ class Orchestrator:
         vars = {}
         vars['filters'] = self.filters
         vars['search'] = self.search_var.get()
-        for ix, string_var in enumerate(self.search_results_str):
-            string_var.set(str(ix) + str(vars))
 
 
 def main():
+    """Launch main Tkinter event loop."""
     root = Tk()
-    root.title("IndieK v0.0.1")
+    root.title(f"indiek-gui v{__version__}")
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     root.configure(width=1600, height=1000)
