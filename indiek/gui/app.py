@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from typing import Optional, Mapping
 from tkinter import *
 from tkinter import ttk
 from functools import partial
@@ -7,18 +8,21 @@ from indiek.core.search import list_all_items
 from indiek.gui.items import core_to_gui_item, GUIItem
 from . import __version__
 
-# initial_item below is just to simulate that DB is not empty
-initial_item = CoreItem(
-    name="dummy item", 
-    content="dummy content"
-    )
-initial_item.save()
+# # initial_item below is just to simulate that DB is not empty
+# initial_item = CoreItem(
+#     name="dummy item", 
+#     content="dummy content"
+#     )
+# initial_item.save()
 
 WRAP_1 = 380
 ENTRY_DEFAULT_LENGTH = 54
 
 
 class Orchestrator:
+    item_result_height = 40
+    """Height of Label in results to be displayed."""
+
     view_id = 0
     """ID of view tab in Notebook."""
 
@@ -41,6 +45,7 @@ class Orchestrator:
     _default_str = 'No Item Selected'
     
     search_results_list = []
+    """List of GUIItems to be displayed as search results."""
 
     ikid_to_result_slot = {}
     
@@ -57,15 +62,6 @@ class Orchestrator:
 
         self.max_results = max_results
 
-        for result_ix, core_item in enumerate(list_all_items()):
-            gui_item = core_to_gui_item(
-                core_item,
-                name_var=StringVar(value=core_item.name),
-                content_var=StringVar(value=core_item.content),
-                )
-            self.search_results_list.append(gui_item)
-            self.ikid_to_result_slot[gui_item._ikid] = result_ix
-
         self.root = root
         self.mainframe = ttk.Panedwindow(self.root, orient=HORIZONTAL)
         self.mainframe.grid(column=0, row=0, sticky='news')
@@ -75,6 +71,7 @@ class Orchestrator:
 
         self._initialize_right_panel()
         self._initialize_left_panel()
+        # self.refresh_results()
 
         self.mainframe.add(self.left_panel, weight=1)
         self.mainframe.add(self.right_panel, weight=2)
@@ -243,6 +240,9 @@ class Orchestrator:
         # save to DB
         self.view_var.save()
 
+        # refresh search results
+        self.refresh_results()
+
         # hide editor
         self.view_nb.tab(self.edit_id, state='hidden')
 
@@ -328,8 +328,7 @@ class Orchestrator:
         # ------------------
         # SCROLLABLE CANVAS
         # ------------------
-        height = 40
-        scroll_height = self.max_results * height
+        scroll_height = self.max_results * self.item_result_height
         scroll_width = 300
 
         scr = ttk.Scrollbar(self.results_frame, orient=VERTICAL)
@@ -346,23 +345,26 @@ class Orchestrator:
         # -------------------
         # DUMMY RESULT PANES
         # -------------------
-        for result_ix, gui_item in enumerate(self.search_results_list):
+        self.populate_search_results_canvas(self.search_results_list)
+
+    def populate_search_results_canvas(self, results_list):
+        for result_ix, gui_item in enumerate(results_list):
             search_result = ttk.Label(
                 self.results_canvas,
                 textvariable=gui_item.name_var,
                 wraplength=WRAP_1,  # pixels
             )
             self.view_callbacks[result_ix] = partial(
-                self.populate_view_pane, gui_item, result_ix)
+                self.populate_view_pane, gui_item)
 
             search_result.bind('<Button-1>', self.view_callbacks[result_ix])
 
             _ = self.results_canvas.create_window(
                 0,
-                height * result_ix,
+                self.item_result_height * result_ix,
                 anchor='nw',
                 window=search_result,
-                height=height,
+                height=self.item_result_height,
                 tags=('palette')
             )
 
@@ -441,10 +443,47 @@ class Orchestrator:
         self.left_panel.event_generate('<<filter-update>>')
 
     def collect_search(self, *args):
+        """Collect search parameters and triggers search.
+
+        This callback gets called when:
+        - a <<filter-update>> event happens
+        - a change happens in search bar entry
+        - user clicks "Save" on edit tab
+
+        This method calls refresh_results method to update
+        results list.
+        """
         vars = {}
         vars['filters'] = self.filters
         vars['search'] = self.search_var.get()
 
+        self.refresh_results(vars)
+
+    def refresh_results(self, search_params: Optional[Mapping] = None):
+        """Trigger backend search using search parameters.
+
+        This method also updates results on GUI.
+
+        Args:
+            search_params (Optional[Mapping], optional): Search parameters. Defaults to None.
+
+        Raises:
+            NotImplementedError: If search_params is not None.
+        """
+        if search_params is None:
+            self.search_results_list = []
+            for result_ix, core_item in enumerate(list_all_items()):
+                gui_item = core_to_gui_item(
+                    core_item,
+                    name_var=StringVar(value=core_item.name),
+                    content_var=StringVar(value=core_item.content),
+                    )
+                self.search_results_list.append(gui_item)
+                self.ikid_to_result_slot[gui_item._ikid] = result_ix
+        else:
+            pass
+            # raise NotImplementedError()
+        self.populate_search_results_canvas(self.search_results_list)
 
 def main():
     """Launch main Tkinter event loop."""
