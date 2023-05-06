@@ -19,29 +19,44 @@ ENTRY_DEFAULT_LENGTH = 54
 
 
 class Orchestrator:
+    view_id = 0
+    """ID of view tab in Notebook."""
+
+    edit_id = 1
+    """ID of edit tab in Notebook."""
+
+    filters = []
+    filter_callbacks = {}
+    """Callbacks for filter."""
+
+    filter_buttons = {}
+    filter_vars = {}
+
+    view_callbacks = {}
+    """Callbacks for View pane."""
+
+    text = {}
+    """Text widgets for Editing arranged as Dict."""
+    
+    _default_str = 'No Item Selected'
+    
+    search_results_list = []
+
+    ikid_to_result_slot = {}
+    
     def __init__(self, root, max_results: int = 100):
-        self.max_results = max_results
-
-        self.filters = []
-        self.filter_callbacks = {}
-        self.filter_buttons = {}
-        self.filter_vars = {}
-
-        self.view_callbacks = {}
-        _default_str = 'No Item Selected'
-        self.view_var = GUIItem(
-            name_var=StringVar(value=_default_str),
-            content_var=StringVar(value=_default_str),
-            name=_default_str, 
-            content=_default_str
-            )
-
-        self.text = {}
-
         self.search_var = StringVar()
 
-        self.search_results_list = []
-        self.ikid_to_result_slot = {}
+        self.view_var = GUIItem(
+                name_var=StringVar(value=self._default_str),
+                content_var=StringVar(value=self._default_str),
+                name=self._default_str, 
+                content=self._default_str
+                )
+        """Current GUIItem for View/Edit panel."""
+
+        self.max_results = max_results
+
         for result_ix, core_item in enumerate(list_all_items()):
             gui_item = core_to_gui_item(
                 core_item,
@@ -52,8 +67,7 @@ class Orchestrator:
             self.ikid_to_result_slot[gui_item._ikid] = result_ix
 
         self.root = root
-        self.mainframe = ttk.Panedwindow(
-            self.root, orient=HORIZONTAL)  # ttk.Frame(root)
+        self.mainframe = ttk.Panedwindow(self.root, orient=HORIZONTAL)
         self.mainframe.grid(column=0, row=0, sticky='news')
         self.mainframe.columnconfigure(0, weight=1)
         self.mainframe.columnconfigure(1, weight=2)
@@ -152,8 +166,8 @@ class Orchestrator:
         self.new_item_button = ttk.Button(
             btn_frame,
             text='New Item',
-            # command=self.switch_to_edit,
-            state='disabled'
+            command=self.switch_to_edit_new,
+            state='normal'
         )
         self.new_item_button.grid(row=0, column=0, sticky=(N,))
 
@@ -176,15 +190,12 @@ class Orchestrator:
             edit, text='Save', command=self.switch_to_view)
         save_button.grid(row=0, column=1)
 
-        self.initialize_item_edit(
-            edit, 
-            text_vars=self.view_var
-        )
+        self.initialize_item_edit(edit)
 
         self.view_nb.add(view, text='View')
         self.view_nb.add(edit, text='Edit', state='hidden')
 
-    def initialize_item_edit(self, frame, text_vars: GUIItem):
+    def initialize_item_edit(self, frame):
         local_frame = ttk.Frame(frame)
         local_frame.grid(row=0, column=0, sticky='news')
         local_frame.grid_rowconfigure(0, weight=1)
@@ -196,26 +207,30 @@ class Orchestrator:
         item_name_descr.grid(row=0, column=0, sticky='e')
 
         self.text['name'] = Text(local_frame)
-        self.text['name'].insert('1.0', text_vars.name)
+        # self.text['name'].insert('1.0', gui_item.name)
         self.text['name'].grid(row=0, column=1, sticky='w')
 
         item_content_descr = ttk.Label(local_frame, text='content')
         item_content_descr.grid(row=1, column=0, sticky='e')
         
         self.text['content'] = Text(local_frame)
-        self.text['content'].insert('1.0', text_vars.content)
+        # self.text['content'].insert('1.0', gui_item.content)
         self.text['content'].grid(row=1, column=1, sticky='w')
 
     def switch_to_edit(self):
-        edit_id = 1
-        self.view_nb.tab(edit_id, state='normal')
-        self.view_nb.select(edit_id)
+        """Switch focus from item view to item edition."""
+        self.view_nb.tab(self.edit_id, state='normal')
+        self.view_nb.select(self.edit_id)
+    
+    def switch_to_edit_new(self):
+        """Switch to edit tab for new item creation."""
+        new_item = GUIItem(name_var=StringVar(), content_var=StringVar())
+        self.populate_view_pane(new_item)
+        self.view_nb.tab(self.edit_id, state='normal')
+        self.view_nb.select(self.edit_id)
 
     def switch_to_view(self):
         """When focus is on Edit tab; save and switch to View tab."""
-
-        edit_id = 1
-        view_id = 0
 
         # content attr
         content_str = self.text['content'].get('1.0', 'end')
@@ -228,15 +243,11 @@ class Orchestrator:
         # save to DB
         self.view_var.save()
 
-        # and refresh search results
-        # result_ix = self.ikid_to_result_slot[self.view_var._ikid]
-        # self.search_results_str[result_ix].set(self.view_var.name)
-
         # hide editor
-        self.view_nb.tab(edit_id, state='hidden')
+        self.view_nb.tab(self.edit_id, state='hidden')
 
         # focus back on view
-        self.view_nb.select(view_id)
+        self.view_nb.select(self.view_id)
 
     def _initialize_filter_block(self):
         (ttk
@@ -356,10 +367,11 @@ class Orchestrator:
             )
 
     def populate_view_pane(self, gui_item: GUIItem, *args):
-        """Populate View pane with GUIItem.
+        """Populate View & Edit tabs with GUIItem data.
 
-        This callback gets triggered when item from search results
-        gets clicked upon.
+        This callback gets triggered when:
+         - item from search results gets clicked upon, or,
+         - user clicks on create new Item
 
         Args:
             gui_item (GUIItem): Item to use to populate data fields.
@@ -369,6 +381,7 @@ class Orchestrator:
         self.item_view_name_label['textvariable'] = self.view_var.name_var
         self.item_view_content_label['textvariable'] = self.view_var.content_var
 
+        # enable editing
         self.edit_button['state'] = 'normal'
 
         # update Text widgets for future edits
