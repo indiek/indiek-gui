@@ -2,14 +2,17 @@
 from tkinter import *
 from tkinter import ttk
 from functools import partial
-import random
-from indiek.core.search import list_all_items
 from indiek.core.items import Item as CoreItem
+from indiek.core.search import list_all_items
 from indiek.gui.items import core_to_gui_item, GUIItem
 from . import __version__
 
-initial_item = CoreItem(name="dummy item", content="dummy content")
-initial_item.to_db().save()
+# initial_item below is just to simulate that DB is not empty
+initial_item = CoreItem(
+    name="dummy item", 
+    content="dummy content"
+    )
+initial_item.save()
 
 WRAP_1 = 380
 ENTRY_DEFAULT_LENGTH = 54
@@ -17,23 +20,38 @@ ENTRY_DEFAULT_LENGTH = 54
 
 class Orchestrator:
     def __init__(self, root, max_results: int = 100):
-        self.root = root
         self.max_results = max_results
+
         self.filters = []
         self.filter_callbacks = {}
         self.filter_buttons = {}
         self.filter_vars = {}
-        self.view_callbacks = {}
-        self.view_var = [StringVar(value='default view'), None]
-        self.search_var = StringVar()
-        self.search_results_str = [
-            StringVar(value=f'{i}') for i in range(self.max_results)]
-        self.search_results_list = []
-        for core_item, str_var in zip(list_all_items(), self.search_results_str):
-            gui_item = core_to_gui_item(core_item)
-            self.search_results_list.append(gui_item)
-            str_var.set(gui_item.display())
 
+        self.view_callbacks = {}
+        _default_str = 'No Item Selected'
+        self.view_var = GUIItem(
+            name_var=StringVar(value=_default_str),
+            content_var=StringVar(value=_default_str),
+            name=_default_str, 
+            content=_default_str
+            )
+
+        self.text = {}
+
+        self.search_var = StringVar()
+
+        self.search_results_list = []
+        self.ikid_to_result_slot = {}
+        for result_ix, core_item in enumerate(list_all_items()):
+            gui_item = core_to_gui_item(
+                core_item,
+                name_var=StringVar(value=core_item.name),
+                content_var=StringVar(value=core_item.content),
+                )
+            self.search_results_list.append(gui_item)
+            self.ikid_to_result_slot[gui_item._ikid] = result_ix
+
+        self.root = root
         self.mainframe = ttk.Panedwindow(
             self.root, orient=HORIZONTAL)  # ttk.Frame(root)
         self.mainframe.grid(column=0, row=0, sticky='news')
@@ -47,12 +65,35 @@ class Orchestrator:
         self.mainframe.add(self.left_panel, weight=1)
         self.mainframe.add(self.right_panel, weight=2)
 
+    def initialize_item_view(self, frame, text_vars: GUIItem):
+        local_frame = ttk.Frame(frame)
+        local_frame.grid(row=0, column=0, sticky='news')
+        local_frame.grid_rowconfigure(0, weight=1)
+        local_frame.grid_rowconfigure(1, weight=1)
+        local_frame.grid_columnconfigure(0, weight=1)
+        local_frame.grid_columnconfigure(1, weight=1)
+        
+        item_name_descr = ttk.Label(local_frame, text='name')
+        item_name_descr.grid(row=0, column=0, sticky='e')
+        
+        item_name = ttk.Label(local_frame, textvariable=text_vars.name_var)
+        item_name.grid(row=0, column=1, sticky='w')
+
+        item_content_descr = ttk.Label(local_frame, text='content')
+        item_content_descr.grid(row=1, column=0, sticky='e')
+        
+        item_content = ttk.Label(local_frame, textvariable=text_vars.content_var)
+        item_content.grid(row=1, column=1, sticky='w')
+
+
     def _initialize_right_panel(self):
         right_panel_style = ttk.Style()
         right_panel_style.configure(
             'Rightpanel.TLabelframe',
             background='green',
             padding=10,
+            width=1000,
+            height=650
         )
         self.right_panel = ttk.PanedWindow(self.mainframe, orient=VERTICAL)
 
@@ -79,7 +120,7 @@ class Orchestrator:
         self.right_panel.add(self.project_panel, weight=1)
 
     def _populate_view_notebook(self):
-        self.view_nb = ttk.Notebook(self.view_panel)
+        self.view_nb = ttk.Notebook(self.view_panel, width=800)
         self.view_nb.grid(row=0, column=0, sticky='news')
 
         # View tab
@@ -87,19 +128,41 @@ class Orchestrator:
         view.grid(row=0, column=0, sticky='news')
         view.grid_rowconfigure(0, weight=1)
         view.grid_columnconfigure(0, weight=1)
-        view.grid_columnconfigure(1, weight=0)
 
-        view_label = ttk.Label(view, textvariable=self.view_var[0])
-        view_label.grid(row=0, column=0, sticky='news')
+        item_frame = ttk.Frame(view, borderwidth=1, relief='groove')
+        item_frame.grid(row=0, column=0, sticky='news')
+        item_frame.grid_columnconfigure(0, weight=1)
+        item_frame.grid_columnconfigure(1, weight=0)
+        item_frame.grid_rowconfigure(0, weight=1)
+
+        self.initialize_item_view(
+            item_frame,
+            text_vars=self.view_var, 
+            )
         # TODO: add scrollbar?
 
+        btn_frame = ttk.Frame(view)
+        btn_frame.grid(row=0, column=1, sticky='news')
+        btn_frame.grid_columnconfigure(0, weight=1)
+        btn_frame.grid_rowconfigure(0, weight=0)
+        btn_frame.grid_rowconfigure(1, weight=0)
+        btn_frame.grid_rowconfigure(2, weight=0)
+
+        self.new_item_button = ttk.Button(
+            btn_frame,
+            text='New Item',
+            # command=self.switch_to_edit,
+            state='disabled'
+        )
+        self.new_item_button.grid(row=0, column=0, sticky=(N,))
+
         self.edit_button = ttk.Button(
-            view,
+            btn_frame,
             text='Edit',
             command=self.switch_to_edit,
             state='disabled'
         )
-        self.edit_button.grid(row=0, column=1)
+        self.edit_button.grid(row=1, column=0, sticky=(N,))
 
         # Edit tab
         edit = ttk.Frame(self.view_nb)
@@ -112,12 +175,35 @@ class Orchestrator:
             edit, text='Save', command=self.switch_to_view)
         save_button.grid(row=0, column=1)
 
-        self.text = Text(edit, width=40, height=10)
-        self.text.insert('1.0', self.view_var[0].get())
-        self.text.grid(row=0, column=0, sticky='news')
+        self.initialize_item_edit(
+            edit, 
+            text_vars=self.view_var
+        )
 
         self.view_nb.add(view, text='View')
         self.view_nb.add(edit, text='Edit', state='hidden')
+
+    def initialize_item_edit(self, frame, text_vars: GUIItem):
+        local_frame = ttk.Frame(frame)
+        local_frame.grid(row=0, column=0, sticky='news')
+        local_frame.grid_rowconfigure(0, weight=1)
+        local_frame.grid_rowconfigure(1, weight=1)
+        local_frame.grid_columnconfigure(0, weight=1)
+        local_frame.grid_columnconfigure(1, weight=1)
+        
+        item_name_descr = ttk.Label(local_frame, text='name')
+        item_name_descr.grid(row=0, column=0, sticky='e')
+
+        self.text['name'] = Text(local_frame)
+        self.text['name'].insert('1.0', text_vars.name)
+        self.text['name'].grid(row=0, column=1, sticky='w')
+
+        item_content_descr = ttk.Label(local_frame, text='content')
+        item_content_descr.grid(row=1, column=0, sticky='e')
+        
+        self.text['content'] = Text(local_frame)
+        self.text['content'].insert('1.0', text_vars.content)
+        self.text['content'].grid(row=1, column=1, sticky='w')
 
     def switch_to_edit(self):
         edit_id = 1
@@ -126,13 +212,24 @@ class Orchestrator:
 
     def switch_to_view(self):
         """When focus is on Edit tab; save and switch to View tab."""
+
         edit_id = 1
         view_id = 0
 
-        # save text
-        self.view_var[0].set(self.text.get('1.0', 'end'))
-        # and propagate to mock DB
-        self.search_results_str[self.view_var[1]].set(self.view_var[0].get())
+        # content attr
+        content_str = self.text['content'].get('1.0', 'end')
+        self.view_var.update_content(content_str)
+
+        # name attr
+        name_str = self.text['name'].get('1.0', 'end')
+        self.view_var.update_name(name_str)
+
+        # save to DB
+        self.view_var.save()
+
+        # and refresh search results
+        result_ix = self.ikid_to_result_slot[self.view_var._ikid]
+        self.search_results_str[result_ix].set(self.view_var.name)
 
         # hide editor
         self.view_nb.tab(edit_id, state='hidden')
@@ -240,7 +337,7 @@ class Orchestrator:
         for result_ix, gui_item in enumerate(self.search_results_list):
             search_results = ttk.Label(
                 self.results_canvas,
-                textvariable=self.search_results_str[result_ix],
+                textvariable=gui_item.name_var,
                 wraplength=WRAP_1,  # pixels
             )
             self.view_callbacks[result_ix] = partial(
@@ -257,17 +354,23 @@ class Orchestrator:
                 tags=('palette')
             )
 
-    def populate_view_pane(self, gui_item: GUIItem, result_id, *args):
-        pop_str = gui_item.display()
+    def populate_view_pane(self, gui_item: GUIItem, *args):
+        """Populate View pane with GUIItem.
 
-        self.view_var[0].set(pop_str)
-        # TODO: rethink logic of line below
-        self.view_var[1] = result_id
+        This callback gets triggered when item from search results
+        gets clicked upon.
+
+        Args:
+            gui_item (GUIItem): Item to use to populate data fields.
+        """
+        self.view_var = gui_item
 
         self.edit_button['state'] = 'normal'
 
-        self.text.delete('1.0', 'end')
-        self.text.insert('1.0', self.view_var[0].get())
+        # update Text widgets for future edits
+        for attr_name in ['name', 'content']:
+            self.text[attr_name].delete('1.0', 'end')
+            self.text[attr_name].insert('1.0', getattr(self.view_var, attr_name))
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
@@ -332,7 +435,9 @@ def main():
     root.title(f"indiek-gui v{__version__}")
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
-    root.configure(width=1600, height=1000)
+
+    # for some reason width and height below have no effect
+    root.configure(width=2000, height=1000)
 
     Orchestrator(root)
 
