@@ -65,7 +65,7 @@ class Orchestrator:
         self.mainframe.add(self.left_panel, weight=1)
         self.mainframe.add(self.right_panel, weight=2)
 
-    def initialize_item_view(self, frame, text_vars: GUIItem):
+    def initialize_item_view(self, frame, gui_item: GUIItem):
         local_frame = ttk.Frame(frame)
         local_frame.grid(row=0, column=0, sticky='news')
         local_frame.grid_rowconfigure(0, weight=1)
@@ -75,16 +75,17 @@ class Orchestrator:
         
         item_name_descr = ttk.Label(local_frame, text='name')
         item_name_descr.grid(row=0, column=0, sticky='e')
-        
-        item_name = ttk.Label(local_frame, textvariable=text_vars.name_var)
+
+        item_name = ttk.Label(local_frame, textvariable=gui_item.name_var)
         item_name.grid(row=0, column=1, sticky='w')
+        self.item_view_name_label = item_name
 
         item_content_descr = ttk.Label(local_frame, text='content')
         item_content_descr.grid(row=1, column=0, sticky='e')
         
-        item_content = ttk.Label(local_frame, textvariable=text_vars.content_var)
+        item_content = ttk.Label(local_frame, textvariable=gui_item.content_var)
         item_content.grid(row=1, column=1, sticky='w')
-
+        self.item_view_content_label = item_content
 
     def _initialize_right_panel(self):
         right_panel_style = ttk.Style()
@@ -137,7 +138,7 @@ class Orchestrator:
 
         self.initialize_item_view(
             item_frame,
-            text_vars=self.view_var, 
+            gui_item=self.view_var, 
             )
         # TODO: add scrollbar?
 
@@ -228,8 +229,8 @@ class Orchestrator:
         self.view_var.save()
 
         # and refresh search results
-        result_ix = self.ikid_to_result_slot[self.view_var._ikid]
-        self.search_results_str[result_ix].set(self.view_var.name)
+        # result_ix = self.ikid_to_result_slot[self.view_var._ikid]
+        # self.search_results_str[result_ix].set(self.view_var.name)
 
         # hide editor
         self.view_nb.tab(edit_id, state='hidden')
@@ -335,7 +336,7 @@ class Orchestrator:
         # DUMMY RESULT PANES
         # -------------------
         for result_ix, gui_item in enumerate(self.search_results_list):
-            search_results = ttk.Label(
+            search_result = ttk.Label(
                 self.results_canvas,
                 textvariable=gui_item.name_var,
                 wraplength=WRAP_1,  # pixels
@@ -343,13 +344,13 @@ class Orchestrator:
             self.view_callbacks[result_ix] = partial(
                 self.populate_view_pane, gui_item, result_ix)
 
-            search_results.bind('<Button-1>', self.view_callbacks[result_ix])
+            search_result.bind('<Button-1>', self.view_callbacks[result_ix])
 
             _ = self.results_canvas.create_window(
                 0,
                 height * result_ix,
                 anchor='nw',
-                window=search_results,
+                window=search_result,
                 height=height,
                 tags=('palette')
             )
@@ -364,6 +365,9 @@ class Orchestrator:
             gui_item (GUIItem): Item to use to populate data fields.
         """
         self.view_var = gui_item
+        # TODO: think about improving below logic
+        self.item_view_name_label['textvariable'] = self.view_var.name_var
+        self.item_view_content_label['textvariable'] = self.view_var.content_var
 
         self.edit_button['state'] = 'normal'
 
