@@ -16,7 +16,7 @@ setup(
     author_email='adrian.radillo@gmail.com',
     license='GNU Affero General Public License v3.0',
     packages=['indiek.gui'],
-    install_requires=['indiek-core >= 0.1.1, <1.0.0'],
+    install_requires=['indiek-core == 0.1.2'],
     extras_require={
         'dev': [
             'pytest',
