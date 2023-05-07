@@ -5,6 +5,10 @@ from tkinter import ttk
 from functools import partial
 from indiek.core.search import list_all_items
 from indiek.gui.items import core_to_gui_item, Item as GUIItem, Definition, Theorem, Proof
+from indiek.core.items import (Item as CoreItem, 
+                               Definition as CoreDefinition, 
+                               Theorem as CoreTheorem, 
+                               Proof as CoreProof)
 from . import __version__
 
 
@@ -17,12 +21,11 @@ FILTER_NAMES = ['Definitions', 'Theorems', 'Proofs']
 
 
 NAME_TO_ITEM_TYPE = {
-    'Definitions': Definition, 
-    'Theorems': Theorem, 
-    'Proofs': Proof
+    'Definitions': CoreDefinition, 
+    'Theorems': CoreTheorem, 
+    'Proofs': CoreProof
 }
 assert set(NAME_TO_ITEM_TYPE.keys()) == set(FILTER_NAMES)
-assert set(NAME_TO_ITEM_TYPE.values()) <= set(ITEM_TYPES)
 
 
 WRAP_1 = 380
