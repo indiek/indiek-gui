@@ -3,17 +3,27 @@ from typing import Optional, Mapping
 from tkinter import *
 from tkinter import ttk
 from functools import partial
-from indiek.core.items import Item as CoreItem
 from indiek.core.search import list_all_items
-from indiek.gui.items import core_to_gui_item, GUIItem
+from indiek.gui.items import core_to_gui_item, Item as GUIItem, Definition, Theorem, Proof
 from . import __version__
 
-# # initial_item below is just to simulate that DB is not empty
-# initial_item = CoreItem(
-#     name="dummy item", 
-#     content="dummy content"
-#     )
-# initial_item.save()
+
+ITEM_TYPES = [Definition, Theorem, Proof]
+"""List of item types."""
+
+
+FILTER_NAMES = ['Definitions', 'Theorems', 'Proofs']
+"""Strings used in filter radio buttons for each Item type."""
+
+
+NAME_TO_ITEM_TYPE = {
+    'Definitions': Definition, 
+    'Theorems': Theorem, 
+    'Proofs': Proof
+}
+assert set(NAME_TO_ITEM_TYPE.keys()) == set(FILTER_NAMES)
+assert set(NAME_TO_ITEM_TYPE.values()) <= set(ITEM_TYPES)
+
 
 WRAP_1 = 380
 ENTRY_DEFAULT_LENGTH = 54
@@ -71,7 +81,6 @@ class Orchestrator:
 
         self._initialize_right_panel()
         self._initialize_left_panel()
-        # self.refresh_results()
 
         self.mainframe.add(self.left_panel, weight=1)
         self.mainframe.add(self.right_panel, weight=2)
@@ -156,17 +165,17 @@ class Orchestrator:
         btn_frame = ttk.Frame(view)
         btn_frame.grid(row=0, column=1, sticky='news')
         btn_frame.grid_columnconfigure(0, weight=1)
-        btn_frame.grid_rowconfigure(0, weight=0)
-        btn_frame.grid_rowconfigure(1, weight=0)
-        btn_frame.grid_rowconfigure(2, weight=0)
 
-        self.new_item_button = ttk.Button(
-            btn_frame,
-            text='New Item',
-            command=self.switch_to_edit_new,
-            state='normal'
-        )
-        self.new_item_button.grid(row=0, column=0, sticky=(N,))
+        self.new_item_buttons = {}
+        for row_ix, item_type in enumerate(ITEM_TYPES):
+            btn_frame.grid_rowconfigure(row_ix, weight=0)
+            self.new_item_buttons[item_type] = ttk.Button(
+                btn_frame,
+                text=f'New {item_type.__name__}',
+                command=partial(self.switch_to_edit_new, item_type),
+                state='normal'
+            )
+            self.new_item_buttons[item_type].grid(row=row_ix, column=0, sticky=(N,))
 
         self.edit_button = ttk.Button(
             btn_frame,
@@ -174,7 +183,7 @@ class Orchestrator:
             command=self.switch_to_edit,
             state='disabled'
         )
-        self.edit_button.grid(row=1, column=0, sticky=(N,))
+        self.edit_button.grid(row=row_ix + 1, column=0, sticky=(N,))
 
         # Edit tab
         edit = ttk.Frame(self.view_nb)
@@ -219,9 +228,9 @@ class Orchestrator:
         self.view_nb.tab(self.edit_id, state='normal')
         self.view_nb.select(self.edit_id)
     
-    def switch_to_edit_new(self):
+    def switch_to_edit_new(self, item_cls: GUIItem):
         """Switch to edit tab for new item creation."""
-        new_item = GUIItem(name_var=StringVar(), content_var=StringVar())
+        new_item = item_cls(name_var=StringVar(), content_var=StringVar())
         self.populate_view_pane(new_item)
         self.view_nb.tab(self.edit_id, state='normal')
         self.view_nb.select(self.edit_id)
@@ -259,7 +268,7 @@ class Orchestrator:
         self.check_buttons_frame.grid(column=1, row=0, sticky='w')
 
         # setup callbacks for filter's CheckButtons
-        cats = ['Definitions', 'Theorems', 'Proofs']
+        cats = FILTER_NAMES
         for cat in cats:
             custom_var = StringVar(value='')
             self.filter_vars[cat] = custom_var
@@ -470,19 +479,26 @@ class Orchestrator:
         Raises:
             NotImplementedError: If search_params is not None.
         """
-        if search_params is None:
-            self.search_results_list = []
-            for result_ix, core_item in enumerate(list_all_items()):
-                gui_item = core_to_gui_item(
-                    core_item,
-                    name_var=StringVar(value=core_item.name),
-                    content_var=StringVar(value=core_item.content),
-                    )
-                self.search_results_list.append(gui_item)
-                self.ikid_to_result_slot[gui_item._ikid] = result_ix
+        self.search_results_list = []
+        if search_params:
+            item_type_filter = [NAME_TO_ITEM_TYPE[f] for f in search_params['filters']]
+            item_buckets = list_all_items(item_type_filter)
         else:
-            pass
-            # raise NotImplementedError()
+            item_buckets = list_all_items()
+
+        # TODO: keep item types separate below
+        item_list = []
+        for ll in item_buckets.values():
+            item_list += ll
+
+        for result_ix, core_item in enumerate(item_list):
+            gui_item = core_to_gui_item(
+                core_item,
+                name_var=StringVar(value=core_item.name),
+                content_var=StringVar(value=core_item.content),
+                )
+            self.search_results_list.append(gui_item)
+            self.ikid_to_result_slot[gui_item._ikid] = result_ix
         self.populate_search_results_canvas(self.search_results_list)
 
 def main():
