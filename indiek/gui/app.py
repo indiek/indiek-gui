@@ -253,7 +253,7 @@ class Orchestrator:
         self.view_var.save()
 
         # refresh search results
-        self.refresh_results()
+        self.collect_search()
 
         # hide editor
         self.view_nb.tab(self.edit_id, state='hidden')
@@ -360,6 +360,9 @@ class Orchestrator:
         self.populate_search_results_canvas(self.search_results_list)
 
     def populate_search_results_canvas(self, results_list):
+        # clear canvas
+        result_tag = 'result_item'
+        self.results_canvas.delete(result_tag)
         for result_ix, gui_item in enumerate(results_list):
             search_result = ttk.Label(
                 self.results_canvas,
@@ -377,7 +380,7 @@ class Orchestrator:
                 anchor='nw',
                 window=search_result,
                 height=self.item_result_height,
-                tags=('palette')
+                tags=(result_tag)
             )
 
     def populate_view_pane(self, gui_item: GUIItem, *args):
@@ -483,9 +486,15 @@ class Orchestrator:
             NotImplementedError: If search_params is not None.
         """
         self.search_results_list = []
-        if search_params:
+        # TODO: current logic ignores searchbar
+        # TODO: setup logging instead of print() below
+
+        # print(f"{search_params=}")
+        if search_params is not None:
             item_type_filter = [NAME_TO_ITEM_TYPE[f] for f in search_params['filters']]
+            # print(f"   {item_type_filter=}")
             item_buckets = list_all_items(item_type_filter)
+            # print(f"   {item_buckets=}")
         else:
             item_buckets = list_all_items()
 
@@ -493,7 +502,7 @@ class Orchestrator:
         item_list = []
         for ll in item_buckets.values():
             item_list += ll
-
+        # print(f"   {item_list=}")
         for result_ix, core_item in enumerate(item_list):
             gui_item = core_to_gui_item(
                 core_item,
@@ -502,6 +511,7 @@ class Orchestrator:
                 )
             self.search_results_list.append(gui_item)
             self.ikid_to_result_slot[gui_item._ikid] = result_ix
+        # print(f"   {self.search_results_list=}")
         self.populate_search_results_canvas(self.search_results_list)
 
 def main():
