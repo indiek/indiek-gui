@@ -3,7 +3,7 @@ from typing import Optional, Mapping
 from tkinter import *
 from tkinter import ttk
 from functools import partial
-from indiek.core.search import list_all_items
+from indiek.core.search import list_all_items, filter_str
 from indiek.gui.items import core_to_gui_item, Item as GUIItem, Definition, Theorem, Proof
 from indiek.core.items import (Item as CoreItem, 
                                Definition as CoreDefinition, 
@@ -492,8 +492,11 @@ class Orchestrator:
         # print(f"{search_params=}")
         if search_params is not None:
             item_type_filter = [NAME_TO_ITEM_TYPE[f] for f in search_params['filters']]
-            # print(f"   {item_type_filter=}")
-            item_buckets = list_all_items(item_type_filter)
+            search_str = search_params['search']
+            if search_str:
+                item_buckets = filter_str(search_str, item_type_filter)
+            else:
+                item_buckets = list_all_items(item_type_filter)
             # print(f"   {item_buckets=}")
         else:
             item_buckets = list_all_items()
