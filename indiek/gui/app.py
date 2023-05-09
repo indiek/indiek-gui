@@ -5,8 +5,7 @@ from tkinter import ttk
 from functools import partial
 from indiek.core.search import list_all_items, filter_str
 from indiek.gui.items import core_to_gui_item, Item as GUIItem, Definition, Theorem, Proof
-from indiek.core.items import (Item as CoreItem, 
-                               Definition as CoreDefinition, 
+from indiek.core.items import (Definition as CoreDefinition, 
                                Theorem as CoreTheorem, 
                                Proof as CoreProof)
 from . import __version__
@@ -529,7 +528,6 @@ def main():
 
     Orchestrator(root)
 
-    root.bind('q', lambda e: root.destroy())
     root.mainloop()
 
 

@@ -1,5 +1,4 @@
 from setuptools import setup
-from .indiek.gui import __version__
 from os.path import abspath, dirname, join
 
 this_dir = abspath(dirname(__file__))
@@ -9,7 +8,7 @@ with open(join(this_dir, 'README.rst'), encoding='utf-8') as file:
 setup(
     name='indiek-gui',
     python_requires='>=3.8',
-    version=__version__,
+    version='0.0.3',
     url='https://pypi.org/project/indiek-gui/',
     description='Tkinter GUI for IndieK',
     long_description=long_description,
