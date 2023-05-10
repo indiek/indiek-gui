@@ -11,6 +11,12 @@ class Item(CoreItem):
 
     This subclasses the core Item class and adds some GUI-specific functionality.
     """
+    _str_var_names = ['name_var', 'content_var']
+    _str_var_to_core_attr = {
+        'name_var': 'name',
+        'content_var': 'content'
+    }
+    _core_attr_to_str_var = {v: k for k, v in _str_var_to_core_attr.items()}
 
     def __str__(self):
         return f"GUI {self.__class__.__name__} with ID {self._ikid} and name {self.name}"
@@ -20,13 +26,16 @@ class Item(CoreItem):
         self.name_var = name_var
         self.content_var = content_var
 
-    def update_name(self, name: str):
-        self.name_var.set(name)
-        self.name = name
+    def update_str_var(self, var_name: str, new_value: str, set_core_attr: bool = False):
+        getattr(self, var_name).set(new_value)
+        if set_core_attr:
+            setattr(self, self._str_var_to_core_attr[var_name], new_value)
 
-    def update_content(self, content: str):
-        self.content_var.set(content)
-        self.content = content
+    def reload(self):
+        super().reload()
+        for core_attr, str_var in self._core_attr_to_str_var.items():
+            new_val = getattr(self, core_attr)
+            self.update_str_var(str_var, new_val, set_core_attr=False)
 
 
 class Definition(Item, CoreDefinition):
@@ -49,10 +58,6 @@ CORE_TO_GUI_TYPES = {
 
 
 def core_to_gui_item(core_item: CoreItem, name_var: StringVar, content_var: StringVar) -> Item:
-    return CORE_TO_GUI_TYPES[core_item.__class__](
-        name_var=name_var,
-        content_var=content_var,
-        name=core_item.name,
-        content=core_item.content,
-        _ikid=core_item._ikid
-    )
+    kwargs = dict(name_var=name_var, content_var=content_var)
+    kwargs.update({a: getattr(core_item, a) for a in core_item._attr_defs})
+    return CORE_TO_GUI_TYPES[core_item.__class__](**kwargs)

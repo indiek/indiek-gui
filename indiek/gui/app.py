@@ -115,8 +115,6 @@ class Orchestrator:
             'Rightpanel.TLabelframe',
             background='green',
             padding=10,
-            width=1000,
-            height=650
         )
         self.right_panel = ttk.PanedWindow(self.mainframe, orient=VERTICAL)
 
@@ -143,7 +141,7 @@ class Orchestrator:
         self.right_panel.add(self.project_panel, weight=1)
 
     def _populate_view_notebook(self):
-        self.view_nb = ttk.Notebook(self.view_panel, width=800)
+        self.view_nb = ttk.Notebook(self.view_panel)
         self.view_nb.grid(row=0, column=0, sticky='news')
 
         # View tab
@@ -167,7 +165,10 @@ class Orchestrator:
         btn_frame = ttk.Frame(view)
         btn_frame.grid(row=0, column=1, sticky='news')
         btn_frame.grid_columnconfigure(0, weight=1)
+        for i in range(5):
+            btn_frame.grid_rowconfigure(i, weight=0)
 
+        # BUTTONS WHILE ON VIEW MODE
         self.new_item_buttons = {}
         for row_ix, item_type in enumerate(ITEM_TYPES):
             btn_frame.grid_rowconfigure(row_ix, weight=0)
@@ -177,7 +178,7 @@ class Orchestrator:
                 command=partial(self.switch_to_edit_new, item_type),
                 state='normal'
             )
-            self.new_item_buttons[item_type].grid(row=row_ix, column=0, sticky=(N,))
+            self.new_item_buttons[item_type].grid(row=row_ix, column=0, sticky=(N, W, E))
 
         self.edit_button = ttk.Button(
             btn_frame,
@@ -185,7 +186,14 @@ class Orchestrator:
             command=self.switch_to_edit,
             state='disabled'
         )
-        self.edit_button.grid(row=row_ix + 1, column=0, sticky=(N,))
+        self.edit_button.grid(row=row_ix + 1, column=0, sticky=(N, W, E))
+        self.delete_button = ttk.Button(
+            btn_frame,
+            text='Delete',
+            command=self.delete,
+            state='disabled'
+        )
+        self.delete_button.grid(row=row_ix + 2, column=0, sticky=(N, W, E))
 
         # Edit tab
         edit = ttk.Frame(self.view_nb)
@@ -194,11 +202,29 @@ class Orchestrator:
         edit.grid_columnconfigure(0, weight=1)
         edit.grid_columnconfigure(1, weight=0)
 
-        save_button = ttk.Button(
-            edit, text='Save', command=self.switch_to_view)
-        save_button.grid(row=0, column=1)
+        item_edit_frame = ttk.Frame(edit, borderwidth=1, relief='groove')
+        item_edit_frame.grid(row=0, column=0, sticky='news')
+        item_edit_frame.grid_columnconfigure(0, weight=1)
+        item_edit_frame.grid_rowconfigure(0, weight=1)
 
-        self.initialize_item_edit(edit)
+        self.initialize_item_edit(item_edit_frame)
+
+        # Buttons while on EDIT mode
+        edit_btn_frame = ttk.Frame(edit)
+        edit_btn_frame.grid(row=0, column=1, sticky='news')
+        edit_btn_frame.grid_columnconfigure(0, weight=1)
+        for i in range(2):
+            edit_btn_frame.grid_rowconfigure(i, weight=0)
+
+        save_button = ttk.Button(
+            edit_btn_frame, text='Save', command=self.switch_to_view)
+        save_button.grid(row=0, column=1, sticky=(N, W, E))
+        self.cancel_button = ttk.Button(
+            edit_btn_frame,
+            text='Cancel',
+            command=self.reload_text,
+        )
+        self.cancel_button.grid(row=1, column=1, sticky=(N, W, E))
 
         self.view_nb.add(view, text='View')
         self.view_nb.add(edit, text='Edit', state='hidden')
@@ -237,16 +263,19 @@ class Orchestrator:
         self.view_nb.tab(self.edit_id, state='normal')
         self.view_nb.select(self.edit_id)
 
+    def delete(self):
+        raise NotImplementedError()
+    
     def switch_to_view(self):
         """When focus is on Edit tab; save and switch to View tab."""
 
         # content attr
         content_str = self.text['content'].get('1.0', 'end')
-        self.view_var.update_content(content_str)
+        self.view_var.update_str_var('content_var', content_str, set_core_attr=True)
 
         # name attr
         name_str = self.text['name'].get('1.0', 'end')
-        self.view_var.update_name(name_str)
+        self.view_var.update_str_var('name_var', name_str, set_core_attr=True)
 
         # save to DB
         self.view_var.save()
@@ -259,6 +288,9 @@ class Orchestrator:
 
         # focus back on view
         self.view_nb.select(self.view_id)
+
+    def reload_text(self):
+        raise NotImplementedError()
 
     def _initialize_filter_block(self):
         (ttk
@@ -387,7 +419,7 @@ class Orchestrator:
 
         This callback gets triggered when:
          - item from search results gets clicked upon, or,
-         - user clicks on create new Item
+         - user clicks on create new <Item>
 
         Args:
             gui_item (GUIItem): Item to use to populate data fields.
@@ -399,6 +431,9 @@ class Orchestrator:
 
         # enable editing
         self.edit_button['state'] = 'normal'
+        self.cancel_button['state'] = 'normal'  # acts as "reload" button
+        # disable delete button
+        self.delete_button['state'] = 'disabled'
 
         # update Text widgets for future edits
         for attr_name in ['name', 'content']:
@@ -524,7 +559,7 @@ def main():
     root.rowconfigure(0, weight=1)
 
     # for some reason width and height below have no effect
-    root.configure(width=2000, height=1000)
+    # root.configure(width=2000, height=1000)
 
     Orchestrator(root)
 
