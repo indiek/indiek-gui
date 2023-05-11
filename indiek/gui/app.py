@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+Mind refresher:
+
+What variable is shown in the Text widgets from the Edit notebook tab?
+
+
+"""
 from typing import Optional, Mapping
 from tkinter import *
 from tkinter import ttk
@@ -222,12 +229,16 @@ class Orchestrator:
         self.cancel_button = ttk.Button(
             edit_btn_frame,
             text='Cancel',
-            command=self.reload_text,
+            command=self.cancel,
         )
         self.cancel_button.grid(row=1, column=1, sticky=(N, W, E))
 
         self.view_nb.add(view, text='View')
         self.view_nb.add(edit, text='Edit', state='hidden')
+
+    def cancel(self):
+        self.populate_text_widget()
+        self.switch_to_view(save=False, update_view_var=False)
 
     def initialize_item_edit(self, frame):
         local_frame = ttk.Frame(frame)
@@ -266,31 +277,30 @@ class Orchestrator:
     def delete(self):
         raise NotImplementedError()
     
-    def switch_to_view(self):
+    def switch_to_view(self, save: bool = True, update_view_var: bool = True):
         """When focus is on Edit tab; save and switch to View tab."""
 
-        # content attr
-        content_str = self.text['content'].get('1.0', 'end')
-        self.view_var.update_str_var('content_var', content_str, set_core_attr=True)
+        if update_view_var:
+            # content attr
+            content_str = self.text['content'].get('1.0', 'end')
+            self.view_var.update_str_var('content_var', content_str, set_core_attr=True)
 
-        # name attr
-        name_str = self.text['name'].get('1.0', 'end')
-        self.view_var.update_str_var('name_var', name_str, set_core_attr=True)
+            # name attr
+            name_str = self.text['name'].get('1.0', 'end')
+            self.view_var.update_str_var('name_var', name_str, set_core_attr=True)
 
-        # save to DB
-        self.view_var.save()
+        if save:
+            # save to DB
+            self.view_var.save()
 
-        # refresh search results
-        self.collect_search()
+            # refresh search results
+            self.collect_search()
 
         # hide editor
         self.view_nb.tab(self.edit_id, state='hidden')
 
         # focus back on view
         self.view_nb.select(self.view_id)
-
-    def reload_text(self):
-        raise NotImplementedError()
 
     def _initialize_filter_block(self):
         (ttk
@@ -435,10 +445,14 @@ class Orchestrator:
         # disable delete button
         self.delete_button['state'] = 'disabled'
 
+    def populate_text_widget(self, gui_item: Optional[GUIItem] = None):
+        """Populate text widget with self.view_var or provided GUIItem."""
+        if gui_item is None:
+            gui_item = self.view_var
         # update Text widgets for future edits
-        for attr_name in ['name', 'content']:
+        for attr_name in self.text.keys():
             self.text[attr_name].delete('1.0', 'end')
-            self.text[attr_name].insert('1.0', getattr(self.view_var, attr_name))
+            self.text[attr_name].insert('1.0', getattr(gui_item, attr_name))
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
