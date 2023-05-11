@@ -37,6 +37,10 @@ class Item(CoreItem):
             new_val = getattr(self, core_attr)
             self.update_str_var(str_var, new_val, set_core_attr=False)
 
+    def delete(self):
+        super().delete()
+        for n in self._str_var_names:
+            self.update_str_var(n, '', set_core_attr=True)
 
 class Definition(Item, CoreDefinition):
     pass

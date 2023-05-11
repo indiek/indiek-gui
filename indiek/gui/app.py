@@ -97,23 +97,40 @@ class Orchestrator:
     def initialize_item_view(self, frame, gui_item: GUIItem):
         local_frame = ttk.Frame(frame)
         local_frame.grid(row=0, column=0, sticky='news')
-        local_frame.grid_rowconfigure(0, weight=1)
-        local_frame.grid_rowconfigure(1, weight=1)
+        local_frame.grid_rowconfigure(0, weight=0)
+        local_frame.grid_rowconfigure(1, weight=0)
+        local_frame.grid_rowconfigure(2, weight=1)
         local_frame.grid_columnconfigure(0, weight=1)
         local_frame.grid_columnconfigure(1, weight=1)
         
-        item_name_descr = ttk.Label(local_frame, text='name')
-        item_name_descr.grid(row=0, column=0, sticky='e')
+        self.item_type = ttk.Label(
+            local_frame, 
+            textvariable=gui_item.__class__.__name__,
+            borderwidth=1,
+            relief='solid'
+            )
+        self.item_type.grid(row=0, column=0, sticky='news')
 
-        item_name = ttk.Label(local_frame, textvariable=gui_item.name_var)
-        item_name.grid(row=0, column=1, sticky='w')
+        item_name_descr = ttk.Label(local_frame, text='name',
+            borderwidth=1,
+            relief='solid')
+        item_name_descr.grid(row=1, column=0, sticky='new')
+
+        item_name = ttk.Label(local_frame, textvariable=gui_item.name_var,
+                    borderwidth=1,
+                    relief='solid')
+        item_name.grid(row=1, column=1, sticky='new')
         self.item_view_name_label = item_name
 
-        item_content_descr = ttk.Label(local_frame, text='content')
-        item_content_descr.grid(row=1, column=0, sticky='e')
+        item_content_descr = ttk.Label(local_frame, text='content',
+                    borderwidth=1,
+                     relief='solid')
+        item_content_descr.grid(row=2, column=0, sticky='new')
         
-        item_content = ttk.Label(local_frame, textvariable=gui_item.content_var)
-        item_content.grid(row=1, column=1, sticky='w')
+        item_content = ttk.Label(local_frame, textvariable=gui_item.content_var,
+                    borderwidth=1,
+                    relief='solid')
+        item_content.grid(row=2, column=1, sticky='new')
         self.item_view_content_label = item_content
 
     def _initialize_right_panel(self):
@@ -135,7 +152,7 @@ class Orchestrator:
         self.view_panel.grid_columnconfigure(0, weight=1)
         self.view_panel.grid_rowconfigure(0, weight=1)
 
-        self._populate_view_notebook()
+        self._initialize_view_notebook()
 
         self.project_panel = ttk.Labelframe(
             self.right_panel,
@@ -147,7 +164,7 @@ class Orchestrator:
         self.right_panel.add(self.view_panel, weight=1)
         self.right_panel.add(self.project_panel, weight=1)
 
-    def _populate_view_notebook(self):
+    def _initialize_view_notebook(self):
         self.view_nb = ttk.Notebook(self.view_panel)
         self.view_nb.grid(row=0, column=0, sticky='news')
 
@@ -275,8 +292,12 @@ class Orchestrator:
         self.view_nb.select(self.edit_id)
 
     def delete(self):
-        raise NotImplementedError()
-    
+        self.view_var.delete()
+        # self.item_type['textvariable'] = "No Item Being Viewed"
+        self.delete_button['state'] = 'disabled'
+        self.collect_search()
+        self.populate_text_widget()
+
     def switch_to_view(self, save: bool = True, update_view_var: bool = True):
         """When focus is on Edit tab; save and switch to View tab."""
 
@@ -300,6 +321,7 @@ class Orchestrator:
         self.view_nb.tab(self.edit_id, state='hidden')
 
         # focus back on view
+        self.delete_button['state'] = 'normal'
         self.view_nb.select(self.view_id)
 
     def _initialize_filter_block(self):
@@ -435,6 +457,7 @@ class Orchestrator:
             gui_item (GUIItem): Item to use to populate data fields.
         """
         self.view_var = gui_item
+        self.item_type['textvariable'] = self.view_var.__class__.__name__
         # TODO: think about improving below logic
         self.item_view_name_label['textvariable'] = self.view_var.name_var
         self.item_view_content_label['textvariable'] = self.view_var.content_var
