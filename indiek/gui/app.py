@@ -38,6 +38,7 @@ WRAP_1 = 380
 ENTRY_DEFAULT_LENGTH = 54
 ONE_LINE_HEIGHT = 1  # in units of lines
 
+
 class Orchestrator:
     item_result_height = 40
     """Height of Label in results to be displayed."""
@@ -68,8 +69,14 @@ class Orchestrator:
 
     ikid_to_result_slot = {}
     
-    def __init__(self, root, max_results: int = 100):
-        self.theme = IndiekTheme()
+    def __init__(
+            self, 
+            root, 
+            max_results: int = 100, 
+            indiek_theme: type = IndiekTheme,
+            debug: bool = False
+            ):
+        self.theme = indiek_theme(debug=debug)
         self.search_var = StringVar()
 
         self.view_var = GUIItem(
@@ -612,7 +619,7 @@ def main():
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
 
-    Orchestrator(root)
+    Orchestrator(root, debug=True)
 
     root.mainloop()
 
