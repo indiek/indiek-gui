@@ -36,7 +36,7 @@ assert set(NAME_TO_ITEM_TYPE.keys()) == set(FILTER_NAMES)
 
 WRAP_1 = 380
 ENTRY_DEFAULT_LENGTH = 54
-
+ONE_LINE_HEIGHT = 1  # in units of lines
 
 class Orchestrator:
     item_result_height = 40
@@ -105,7 +105,7 @@ class Orchestrator:
         
         self.item_type = ttk.Label(
             local_frame, 
-            textvariable=gui_item.__class__.__name__,
+            text=gui_item.__class__.__name__,
             borderwidth=1,
             relief='solid'
             )
@@ -260,20 +260,20 @@ class Orchestrator:
     def initialize_item_edit(self, frame):
         local_frame = ttk.Frame(frame)
         local_frame.grid(row=0, column=0, sticky='news')
-        local_frame.grid_rowconfigure(0, weight=1)
+        local_frame.grid_rowconfigure(0, weight=0)
         local_frame.grid_rowconfigure(1, weight=1)
-        local_frame.grid_columnconfigure(0, weight=1)
+        local_frame.grid_columnconfigure(0, weight=0)
         local_frame.grid_columnconfigure(1, weight=1)
         
         item_name_descr = ttk.Label(local_frame, text='name')
-        item_name_descr.grid(row=0, column=0, sticky='e')
+        item_name_descr.grid(row=0, column=0, sticky='wen')
 
-        self.text['name'] = Text(local_frame)
+        self.text['name'] = Text(local_frame, height=ONE_LINE_HEIGHT)
         # self.text['name'].insert('1.0', gui_item.name)
         self.text['name'].grid(row=0, column=1, sticky='w')
 
         item_content_descr = ttk.Label(local_frame, text='content')
-        item_content_descr.grid(row=1, column=0, sticky='e')
+        item_content_descr.grid(row=1, column=0, sticky='wen')
         
         self.text['content'] = Text(local_frame)
         # self.text['content'].insert('1.0', gui_item.content)
@@ -457,16 +457,18 @@ class Orchestrator:
             gui_item (GUIItem): Item to use to populate data fields.
         """
         self.view_var = gui_item
-        self.item_type['textvariable'] = self.view_var.__class__.__name__
+        self.item_type['text'] = self.view_var.__class__.__name__
         # TODO: think about improving below logic
         self.item_view_name_label['textvariable'] = self.view_var.name_var
         self.item_view_content_label['textvariable'] = self.view_var.content_var
+        
+        # enable delete button if gui_item exists in DB
+        if gui_item.exists_in_db:
+            self.delete_button['state'] = 'normal'
 
         # enable editing
         self.edit_button['state'] = 'normal'
         self.cancel_button['state'] = 'normal'  # acts as "reload" button
-        # disable delete button
-        self.delete_button['state'] = 'disabled'
 
     def populate_text_widget(self, gui_item: Optional[GUIItem] = None):
         """Populate text widget with self.view_var or provided GUIItem."""
@@ -557,10 +559,8 @@ class Orchestrator:
             NotImplementedError: If search_params is not None.
         """
         self.search_results_list = []
-        # TODO: current logic ignores searchbar
         # TODO: setup logging instead of print() below
 
-        # print(f"{search_params=}")
         if search_params is not None:
             item_type_filter = [NAME_TO_ITEM_TYPE[f] for f in search_params['filters']]
             search_str = search_params['search']
@@ -568,7 +568,6 @@ class Orchestrator:
                 item_buckets = filter_str(search_str, item_type_filter)
             else:
                 item_buckets = list_all_items(item_type_filter)
-            # print(f"   {item_buckets=}")
         else:
             item_buckets = list_all_items()
 
@@ -576,7 +575,6 @@ class Orchestrator:
         item_list = []
         for ll in item_buckets.values():
             item_list += ll
-        # print(f"   {item_list=}")
         for result_ix, core_item in enumerate(item_list):
             gui_item = core_to_gui_item(
                 core_item,
@@ -585,7 +583,6 @@ class Orchestrator:
                 )
             self.search_results_list.append(gui_item)
             self.ikid_to_result_slot[gui_item._ikid] = result_ix
-        # print(f"   {self.search_results_list=}")
         self.populate_search_results_canvas(self.search_results_list)
 
 def main():
@@ -594,9 +591,6 @@ def main():
     root.title(f"indiek-gui v{__version__}")
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
-
-    # for some reason width and height below have no effect
-    # root.configure(width=2000, height=1000)
 
     Orchestrator(root)
 
