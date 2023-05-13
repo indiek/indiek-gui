@@ -3,8 +3,7 @@
 Mind refresher:
 
 What variable is shown in the Text widgets from the Edit notebook tab?
-
-
+    -> self.view_var
 """
 from typing import Optional, Mapping
 from tkinter import *
@@ -12,6 +11,7 @@ from tkinter import ttk
 from functools import partial
 from indiek.core.search import list_all_items, filter_str
 from indiek.gui.items import core_to_gui_item, Item as GUIItem, Definition, Theorem, Proof
+from indiek.gui.styles import IndiekTheme
 from indiek.core.items import (Definition as CoreDefinition, 
                                Theorem as CoreTheorem, 
                                Proof as CoreProof)
@@ -69,6 +69,7 @@ class Orchestrator:
     ikid_to_result_slot = {}
     
     def __init__(self, root, max_results: int = 100):
+        self.theme = IndiekTheme()
         self.search_var = StringVar()
 
         self.view_var = GUIItem(
@@ -208,7 +209,8 @@ class Orchestrator:
             btn_frame,
             text='Edit',
             command=self.switch_to_edit,
-            state='disabled'
+            state='disabled',
+            style=self.theme.button.ik_name
         )
         self.edit_button.grid(row=row_ix + 1, column=0, sticky=(N, W, E))
         self.delete_button = ttk.Button(
