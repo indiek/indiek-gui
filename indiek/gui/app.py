@@ -262,21 +262,30 @@ class Orchestrator:
         local_frame = ttk.Frame(frame)
         local_frame.grid(row=0, column=0, sticky='news')
         local_frame.grid_rowconfigure(0, weight=0)
-        local_frame.grid_rowconfigure(1, weight=1)
-        local_frame.grid_columnconfigure(0, weight=0)
+        local_frame.grid_rowconfigure(1, weight=0)
+        local_frame.grid_rowconfigure(2, weight=1)
+        local_frame.grid_columnconfigure(0, weight=1)
         local_frame.grid_columnconfigure(1, weight=1)
         
+        self.item_type_edit = ttk.Label(
+            local_frame, 
+            text='',
+            borderwidth=1,
+            relief='solid'
+            )
+        self.item_type_edit.grid(row=0, column=0, sticky='news')
+
         item_name_descr = ttk.Label(local_frame, text='name')
-        item_name_descr.grid(row=0, column=0, sticky='wen')
+        item_name_descr.grid(row=1, column=0, sticky='wen')
 
         self.text['name'] = Text(local_frame, height=ONE_LINE_HEIGHT)
-        self.text['name'].grid(row=0, column=1, sticky='w')
+        self.text['name'].grid(row=1, column=1, sticky='w')
 
         item_content_descr = ttk.Label(local_frame, text='content')
-        item_content_descr.grid(row=1, column=0, sticky='wen')
+        item_content_descr.grid(row=2, column=0, sticky='wen')
         
         self.text['content'] = Text(local_frame)
-        self.text['content'].grid(row=1, column=1, sticky='w')
+        self.text['content'].grid(row=2, column=1, sticky='w')
 
     def switch_to_edit(self):
         """Switch focus from item view to item edition."""
@@ -288,6 +297,7 @@ class Orchestrator:
         """Switch to edit tab for new item creation."""
         new_item = item_cls(name_var=StringVar(), content_var=StringVar())
         self.populate_view_pane(new_item)
+        self.populate_edit_pane()
         self.view_nb.tab(self.edit_id, state='normal')
         self.view_nb.select(self.edit_id)
 
@@ -476,6 +486,11 @@ class Orchestrator:
         """Populate text widget with self.view_var or provided GUIItem."""
         if gui_item is None:
             gui_item = self.view_var
+        
+        # display which Item type is being edited
+        self.item_type_edit['text'] = gui_item.__class__.__name__
+
+        # populate Text widgets for edition
         for attr_name in gui_item.displayable:
             self.text[attr_name].delete('1.0', 'end')
             to_insert = getattr(gui_item, attr_name)
