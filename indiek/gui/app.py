@@ -142,18 +142,12 @@ class Orchestrator:
         self.item_view_content_label = item_content
 
     def _initialize_right_panel(self):
-        right_panel_style = ttk.Style()
-        right_panel_style.configure(
-            'Rightpanel.TLabelframe',
-            background='green',
-            padding=10,
-        )
         self.right_panel = ttk.PanedWindow(self.mainframe, orient=VERTICAL)
 
         self.view_panel = ttk.Labelframe(
             self.right_panel,
             relief="ridge",
-            style='Rightpanel.TLabelframe',
+            style=self.theme.right_panel.ik_name,
             text='View/Edit'
         )
         self.view_panel.grid(row=0, column=0, sticky='news')
@@ -165,7 +159,7 @@ class Orchestrator:
         self.project_panel = ttk.Labelframe(
             self.right_panel,
             relief="ridge",
-            style='Rightpanel.TLabelframe',
+            style=self.theme.right_panel.ik_name,
             text='Project'
         )
 
@@ -374,17 +368,9 @@ class Orchestrator:
         ttk.Label(self.left_search_pane, text="search").grid(
             column=0, row=1, sticky='ens')
 
-        searchbar_style_name = 'Searchbar.TFrame'
-        self.searchbar_style = ttk.Style()
-        self.searchbar_style.configure(
-            searchbar_style_name,
-            background='orange',
-            foreground='black',
-            padding=5
-        )
         searchbar = ttk.Frame(
             self.left_search_pane,
-            style=searchbar_style_name,
+            style=self.theme.searchbar.ik_name,
         )
         searchbar.grid(row=1, column=1, sticky=(E, W, N, S))
         searchbar.grid_columnconfigure(0, weight=1)
@@ -508,18 +494,6 @@ class Orchestrator:
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
-        # -----------------
-        # LEFT PANEL STYLE
-        # -----------------
-        left_panel_style_name = 'Leftpanel.TLabelframe'
-        left_panel_style = ttk.Style()
-        left_panel_style.configure(
-            left_panel_style_name,
-            background='yellow',
-            foreground='black',
-            padding=10
-        )
-
         # -------------------------
         # LEFT PANEL WINDOWED PANE
         # -------------------------
@@ -528,7 +502,7 @@ class Orchestrator:
         self.left_search_pane = ttk.Labelframe(
             self.left_panel,
             relief="ridge",
-            style=left_panel_style_name,
+            style=self.theme.left_panel.ik_name,
             text='Search'
         )
         self.left_search_pane.grid(column=0, row=0, sticky='news')
@@ -619,7 +593,7 @@ def main():
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
 
-    Orchestrator(root, debug=True)
+    Orchestrator(root, debug=False)
 
     root.mainloop()
 
