@@ -17,7 +17,8 @@ class Item(CoreItem):
         'content_var': 'content'
     }
     _core_attr_to_str_var = {v: k for k, v in _str_var_to_core_attr.items()}
-
+    displayable = ['name', 'content']
+    
     def __str__(self):
         return f"GUI {self.__class__.__name__} with ID {self._ikid} and name {self.name}"
 

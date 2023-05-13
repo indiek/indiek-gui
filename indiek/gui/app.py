@@ -258,6 +258,7 @@ class Orchestrator:
         self.switch_to_view(save=False, update_view_var=False)
 
     def initialize_item_edit(self, frame):
+        """Create frames and labels for single item edition."""
         local_frame = ttk.Frame(frame)
         local_frame.grid(row=0, column=0, sticky='news')
         local_frame.grid_rowconfigure(0, weight=0)
@@ -269,14 +270,12 @@ class Orchestrator:
         item_name_descr.grid(row=0, column=0, sticky='wen')
 
         self.text['name'] = Text(local_frame, height=ONE_LINE_HEIGHT)
-        # self.text['name'].insert('1.0', gui_item.name)
         self.text['name'].grid(row=0, column=1, sticky='w')
 
         item_content_descr = ttk.Label(local_frame, text='content')
         item_content_descr.grid(row=1, column=0, sticky='wen')
         
         self.text['content'] = Text(local_frame)
-        # self.text['content'].insert('1.0', gui_item.content)
         self.text['content'].grid(row=1, column=1, sticky='w')
 
     def switch_to_edit(self):
@@ -461,7 +460,7 @@ class Orchestrator:
         # TODO: think about improving below logic
         self.item_view_name_label['textvariable'] = self.view_var.name_var
         self.item_view_content_label['textvariable'] = self.view_var.content_var
-        
+
         # enable delete button if gui_item exists in DB
         if gui_item.exists_in_db:
             self.delete_button['state'] = 'normal'
@@ -469,6 +468,14 @@ class Orchestrator:
         # enable editing
         self.edit_button['state'] = 'normal'
         self.cancel_button['state'] = 'normal'  # acts as "reload" button
+
+        # TODO: populate edit tab here as well?
+        self.populate_edit_pane(gui_item)
+
+    def populate_edit_pane(self, gui_item):
+        for attr_name in gui_item.displayable:
+            self.text[attr_name].delete('1.0', 'end')
+            self.text[attr_name].insert('1.0', getattr(gui_item, attr_name))
 
     def populate_text_widget(self, gui_item: Optional[GUIItem] = None):
         """Populate text widget with self.view_var or provided GUIItem."""
