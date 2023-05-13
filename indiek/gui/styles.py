@@ -9,23 +9,24 @@ DEBUG_STYLES = {
     }
 }
 
+
 class ButtonStyle(ttk.Style):
     _ik_options = dict(
         background='red',
     )
-    ik_name = 'IndieK.TButton'
-
+    
     def __init__(
             self, 
             style_name: Optional[str] = None, 
             options: Optional[Mapping[str, Any]] = None, 
             ):
         super().__init__()
-        if style_name is None:
-            style_name = self.ik_name
+        
+        self.ik_name = style_name if style_name else 'IndieK.TButton'
         if options is None:
             options = self._ik_options
-        self.configure(style_name, **options)
+        # print('DEBUG', options)
+        self.configure(self.ik_name, **options)
 
 
 class IndiekTheme:
