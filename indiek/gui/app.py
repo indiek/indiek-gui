@@ -280,6 +280,7 @@ class Orchestrator:
 
     def switch_to_edit(self):
         """Switch focus from item view to item edition."""
+        self.populate_edit_pane()
         self.view_nb.tab(self.edit_id, state='normal')
         self.view_nb.select(self.edit_id)
     
@@ -468,8 +469,8 @@ class Orchestrator:
         self.edit_button['state'] = 'normal'
         self.cancel_button['state'] = 'normal'  # acts as "reload" button
 
-        # TODO: populate edit tab here as well?
-        self.populate_edit_pane(gui_item)
+        # # TODO: populate edit tab here as well?
+        # self.populate_edit_pane(gui_item)
 
     def populate_edit_pane(self, gui_item: Optional[GUIItem] = None):
         """Populate text widget with self.view_var or provided GUIItem."""
