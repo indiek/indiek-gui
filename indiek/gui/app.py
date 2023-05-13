@@ -254,7 +254,7 @@ class Orchestrator:
         self.view_nb.add(edit, text='Edit', state='hidden')
 
     def cancel(self):
-        self.populate_text_widget()
+        self.populate_edit_pane()
         self.switch_to_view(save=False, update_view_var=False)
 
     def initialize_item_edit(self, frame):
@@ -292,10 +292,9 @@ class Orchestrator:
 
     def delete(self):
         self.view_var.delete()
-        # self.item_type['textvariable'] = "No Item Being Viewed"
         self.delete_button['state'] = 'disabled'
         self.collect_search()
-        self.populate_text_widget()
+        self.populate_edit_pane()
 
     def switch_to_view(self, save: bool = True, update_view_var: bool = True):
         """When focus is on Edit tab; save and switch to View tab."""
@@ -472,19 +471,15 @@ class Orchestrator:
         # TODO: populate edit tab here as well?
         self.populate_edit_pane(gui_item)
 
-    def populate_edit_pane(self, gui_item):
-        for attr_name in gui_item.displayable:
-            self.text[attr_name].delete('1.0', 'end')
-            self.text[attr_name].insert('1.0', getattr(gui_item, attr_name))
-
-    def populate_text_widget(self, gui_item: Optional[GUIItem] = None):
+    def populate_edit_pane(self, gui_item: Optional[GUIItem] = None):
         """Populate text widget with self.view_var or provided GUIItem."""
         if gui_item is None:
             gui_item = self.view_var
-        # update Text widgets for future edits
-        for attr_name in self.text.keys():
+        for attr_name in gui_item.displayable:
             self.text[attr_name].delete('1.0', 'end')
-            self.text[attr_name].insert('1.0', getattr(gui_item, attr_name))
+            to_insert = getattr(gui_item, attr_name)
+            if to_insert:
+                self.text[attr_name].insert('1.0', to_insert)
 
     def _initialize_left_panel(self):
         """Setup left panel in main frame."""
