@@ -5,6 +5,7 @@ Mind refresher:
 What variable is shown in the Text widgets from the Edit notebook tab?
     -> self.view_var
 """
+# TODO: set minimum width on labels or their containing columns
 from typing import Optional, Mapping
 from tkinter import *
 from tkinter import ttk
@@ -35,7 +36,7 @@ assert set(NAME_TO_ITEM_TYPE.keys()) == set(FILTER_NAMES)
 
 
 WRAP_1 = 380
-ENTRY_DEFAULT_LENGTH = 54
+
 ONE_LINE_HEIGHT = 1  # in units of lines
 
 
@@ -108,36 +109,27 @@ class Orchestrator:
         local_frame.grid_rowconfigure(0, weight=0)
         local_frame.grid_rowconfigure(1, weight=0)
         local_frame.grid_rowconfigure(2, weight=1)
-        local_frame.grid_columnconfigure(0, weight=1)
+        local_frame.grid_columnconfigure(0, weight=0)
         local_frame.grid_columnconfigure(1, weight=1)
         
         self.item_type = ttk.Label(
             local_frame, 
             text=gui_item.__class__.__name__,
-            borderwidth=1,
-            relief='solid'
+            style=self.theme.generic_label.ik_name
             )
         self.item_type.grid(row=0, column=0, sticky='news')
-
-        item_name_descr = ttk.Label(local_frame, text='name',
-            borderwidth=1,
-            relief='solid')
+        gen_label = partial(ttk.Label, local_frame, style=self.theme.generic_label.ik_name)
+        item_name_descr = gen_label(text='name')
         item_name_descr.grid(row=1, column=0, sticky='new')
 
-        item_name = ttk.Label(local_frame, textvariable=gui_item.name_var,
-                    borderwidth=1,
-                    relief='solid')
+        item_name = gen_label(textvariable=gui_item.name_var)
         item_name.grid(row=1, column=1, sticky='new')
         self.item_view_name_label = item_name
 
-        item_content_descr = ttk.Label(local_frame, text='content',
-                    borderwidth=1,
-                     relief='solid')
+        item_content_descr = gen_label(text='content')
         item_content_descr.grid(row=2, column=0, sticky='new')
         
-        item_content = ttk.Label(local_frame, textvariable=gui_item.content_var,
-                    borderwidth=1,
-                    relief='solid')
+        item_content = gen_label(textvariable=gui_item.content_var)
         item_content.grid(row=2, column=1, sticky='new')
         self.item_view_content_label = item_content
 
@@ -176,7 +168,7 @@ class Orchestrator:
         view.grid_rowconfigure(0, weight=1)
         view.grid_columnconfigure(0, weight=1)
 
-        item_frame = ttk.Frame(view, borderwidth=1, relief='groove')
+        item_frame = ttk.Frame(view, style=self.theme.item_view.ik_name)
         item_frame.grid(row=0, column=0, sticky='news')
         item_frame.grid_columnconfigure(0, weight=1)
         item_frame.grid_columnconfigure(1, weight=0)
@@ -229,7 +221,7 @@ class Orchestrator:
         edit.grid_columnconfigure(0, weight=1)
         edit.grid_columnconfigure(1, weight=0)
 
-        item_edit_frame = ttk.Frame(edit, borderwidth=1, relief='groove')
+        item_edit_frame = ttk.Frame(edit, style=self.theme.item_view.ik_name)
         item_edit_frame.grid(row=0, column=0, sticky='news')
         item_edit_frame.grid_columnconfigure(0, weight=1)
         item_edit_frame.grid_rowconfigure(0, weight=1)
@@ -267,14 +259,13 @@ class Orchestrator:
         local_frame.grid_rowconfigure(0, weight=0)
         local_frame.grid_rowconfigure(1, weight=0)
         local_frame.grid_rowconfigure(2, weight=1)
-        local_frame.grid_columnconfigure(0, weight=1)
+        local_frame.grid_columnconfigure(0, weight=0)
         local_frame.grid_columnconfigure(1, weight=1)
         
         self.item_type_edit = ttk.Label(
             local_frame, 
             text='',
-            borderwidth=1,
-            relief='solid'
+            style=self.theme.generic_label.ik_name
             )
         self.item_type_edit.grid(row=0, column=0, sticky='news')
 
@@ -288,7 +279,7 @@ class Orchestrator:
         item_content_descr.grid(row=2, column=0, sticky='wen')
         
         self.text['content'] = Text(local_frame)
-        self.text['content'].grid(row=2, column=1, sticky='w')
+        self.text['content'].grid(row=2, column=1, sticky='nwe')
 
     def switch_to_edit(self):
         """Switch focus from item view to item edition."""
@@ -382,8 +373,7 @@ class Orchestrator:
             textvariable=self.search_var,
             validate='key',
             validatecommand=(self.root.register(self.validate_search), '%P'),
-            font=('Century 9'),
-            width=ENTRY_DEFAULT_LENGTH
+            style=self.theme.generic_entry.ik_name,
         )
         search_entry.grid(row=0, column=0, sticky='news', pady=2)
         search_entry.bind("<Return>", self.collect_search)
@@ -586,17 +576,18 @@ class Orchestrator:
             self.ikid_to_result_slot[gui_item._ikid] = result_ix
         self.populate_search_results_canvas(self.search_results_list)
 
-def main():
+
+def main(debug: bool = False):
     """Launch main Tkinter event loop."""
     root = Tk()
     root.title(f"indiek-gui v{__version__}")
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
 
-    Orchestrator(root, debug=False)
+    Orchestrator(root, debug=debug)
 
     root.mainloop()
 
 
 if __name__ == '__main__':
-    main()
+    main(True)

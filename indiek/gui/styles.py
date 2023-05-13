@@ -1,7 +1,30 @@
 from tkinter import ttk
 from typing import Optional, Mapping, Any
 
+
+_ENTRY_DEFAULT_LENGTH = 54
+_DEFAULT_FONT = ('Century 9')
 _STYLES = {
+    'entries': {
+        'Generic.TEntry': dict(
+            font=_DEFAULT_FONT,
+            width=_ENTRY_DEFAULT_LENGTH,
+        ),
+        'DebugGeneric.TEntry': dict(
+            font=_DEFAULT_FONT,
+            width=_ENTRY_DEFAULT_LENGTH,
+        ),
+    },
+    'labels': {
+        'Generic.TLabel': dict(
+            padding=3
+        ),
+        'DebugGeneric.TLabel': dict(
+            borderwidth=1,
+            relief='solid',
+            padding=3
+        ),
+    },
     'buttons': {
         'DebugGeneric.TButton': dict(),
         'Generic.TButton': dict()
@@ -9,19 +32,19 @@ _STYLES = {
     'panels': {
         'DebugRightpanel.TLabelframe': dict(
             background='green',
-            padding=10
+            padding=10,
         ),
         'Rightpanel.TLabelframe': dict(
-            padding=10
+            padding=10,
         ),
         'Leftpanel.TLabelframe': dict(
             foreground='black',
-            padding=10
+            padding=10,
             ),
         'DebugLeftpanel.TLabelframe': dict(
             background='yellow',
             foreground='black',
-            padding=10
+            padding=10,
             ),
     },
     'frames': {
@@ -33,6 +56,14 @@ _STYLES = {
             background='orange',
             foreground='black',
             padding=5
+        ),
+        'ItemView.TFrame': dict(
+            borderwidth=1, 
+            relief='groove'
+        ),
+        'DebugItemView.TFrame': dict(
+            borderwidth=1, 
+            relief='groove'
         ),
     }
 }
@@ -53,27 +84,35 @@ class IndieKStyle(ttk.Style):
 
 
 class IndiekTheme:
+    indices = (
+        'buttons',
+        'panels',
+        'frames',
+        'panels',
+        'labels',
+        'frames',
+        'entries',
+    )
 
-    style_names = [
+    style_names = (
         'Generic.TButton',
         'Rightpanel.TLabelframe',
         'Searchbar.TFrame',
         'Leftpanel.TLabelframe',
-    ]
+        'Generic.TLabel',
+        'ItemView.TFrame',
+        'Generic.TEntry'
+    )
 
-    indices = [
-        'buttons',
-        'panels',
-        'frames',
-        'panels'
-    ]
-
-    attr_names = [
+    attr_names = (
         'button',
         'right_panel',
         'searchbar',
         'left_panel',
-    ]
+        'generic_label',
+        'item_view',
+        'generic_entry',
+    )
 
     def __init__(self, debug: bool = False):
         if debug:
