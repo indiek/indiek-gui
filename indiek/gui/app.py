@@ -6,18 +6,20 @@ What variable is shown in the Text widgets from the Edit notebook tab?
     -> self.view_var
 """
 # TODO: set minimum width on labels or their containing columns
-from typing import Optional, Mapping
+from typing import Optional, Mapping, Tuple, Iterator
 from tkinter import *
 from tkinter import ttk
 from functools import partial
 from indiek.core.search import list_all_items, filter_str
 from indiek.gui.items import core_to_gui_item, Item as GUIItem, Definition, Theorem, Proof
-from indiek.gui.styles import IndiekTheme
+from indiek.gui.styles import IndiekTheme, DEFAULT_FONT
 from indiek.core.items import (Definition as CoreDefinition, 
                                Theorem as CoreTheorem, 
                                Proof as CoreProof)
 from . import __version__
 
+
+PairOfInt = Tuple[int, int]
 
 ITEM_TYPES = [Definition, Theorem, Proof]
 """List of item types."""
@@ -35,9 +37,30 @@ NAME_TO_ITEM_TYPE = {
 assert set(NAME_TO_ITEM_TYPE.keys()) == set(FILTER_NAMES)
 
 
+CANVAS_OPTIONS = {
+    'search_results': dict(
+        background='blue',
+    ),
+}
+
 WRAP_1 = 380
 
 ONE_LINE_HEIGHT = 1  # in units of lines
+
+
+def grid_init(
+        frame, 
+        *,
+        subcols: Iterator[PairOfInt] = ((0, 1),), 
+        subrows: Iterator[PairOfInt] = ((0, 1),),
+        init_row_col: PairOfInt = (0,0),
+        sticky: str = 'news',
+        ) -> None:
+    frame.grid(row=init_row_col[0], column=init_row_col[1], sticky=sticky)
+    for colix, colw in subcols:
+        frame.grid_columnconfigure(colix, weight=colw)
+    for rowix, roww in subrows:
+        frame.grid_rowconfigure(rowix, weight=roww)
 
 
 class Orchestrator:
@@ -105,12 +128,11 @@ class Orchestrator:
 
     def initialize_item_view(self, frame, gui_item: GUIItem):
         local_frame = ttk.Frame(frame)
-        local_frame.grid(row=0, column=0, sticky='news')
-        local_frame.grid_rowconfigure(0, weight=0)
-        local_frame.grid_rowconfigure(1, weight=0)
-        local_frame.grid_rowconfigure(2, weight=1)
-        local_frame.grid_columnconfigure(0, weight=0)
-        local_frame.grid_columnconfigure(1, weight=1)
+        grid_init(
+            local_frame,
+            subcols=[(0, 0), (1, 1)],
+            subrows=[(0, 0), (1, 0), (2, 1)]
+            )
         
         self.item_type = ttk.Label(
             local_frame, 
@@ -138,19 +160,15 @@ class Orchestrator:
 
         self.view_panel = ttk.Labelframe(
             self.right_panel,
-            relief="ridge",
             style=self.theme.right_panel.ik_name,
             text='View/Edit'
         )
-        self.view_panel.grid(row=0, column=0, sticky='news')
-        self.view_panel.grid_columnconfigure(0, weight=1)
-        self.view_panel.grid_rowconfigure(0, weight=1)
+        grid_init(self.view_panel)
 
         self._initialize_view_notebook()
 
         self.project_panel = ttk.Labelframe(
             self.right_panel,
-            relief="ridge",
             style=self.theme.right_panel.ik_name,
             text='Project'
         )
@@ -164,15 +182,10 @@ class Orchestrator:
 
         # View tab
         view = ttk.Frame(self.view_nb)
-        view.grid(row=0, column=0, sticky='news')
-        view.grid_rowconfigure(0, weight=1)
-        view.grid_columnconfigure(0, weight=1)
+        grid_init(view)
 
         item_frame = ttk.Frame(view, style=self.theme.item_view.ik_name)
-        item_frame.grid(row=0, column=0, sticky='news')
-        item_frame.grid_columnconfigure(0, weight=1)
-        item_frame.grid_columnconfigure(1, weight=0)
-        item_frame.grid_rowconfigure(0, weight=1)
+        grid_init(item_frame, subcols=[(0, 1), (1, 0)])
 
         self.initialize_item_view(
             item_frame,
@@ -181,15 +194,16 @@ class Orchestrator:
         # TODO: add scrollbar?
 
         btn_frame = ttk.Frame(view)
-        btn_frame.grid(row=0, column=1, sticky='news')
-        btn_frame.grid_columnconfigure(0, weight=1)
-        for i in range(5):
-            btn_frame.grid_rowconfigure(i, weight=0)
+        grid_init(
+            btn_frame,
+            init_row_col=(0, 1),
+            subrows=[(i, 0) for i in range(5)]
+        )
 
         # BUTTONS WHILE ON VIEW MODE
         self.new_item_buttons = {}
         for row_ix, item_type in enumerate(ITEM_TYPES):
-            btn_frame.grid_rowconfigure(row_ix, weight=0)
+            # btn_frame.grid_rowconfigure(row_ix, weight=0)
             self.new_item_buttons[item_type] = ttk.Button(
                 btn_frame,
                 text=f'New {item_type.__name__}',
@@ -216,28 +230,25 @@ class Orchestrator:
 
         # Edit tab
         edit = ttk.Frame(self.view_nb)
-        edit.grid(row=0, column=0, sticky='news')
-        edit.grid_rowconfigure(0, weight=1)
-        edit.grid_columnconfigure(0, weight=1)
-        edit.grid_columnconfigure(1, weight=0)
+        grid_init(edit, subcols=[(0, 1), (1, 0)])
 
         item_edit_frame = ttk.Frame(edit, style=self.theme.item_view.ik_name)
-        item_edit_frame.grid(row=0, column=0, sticky='news')
-        item_edit_frame.grid_columnconfigure(0, weight=1)
-        item_edit_frame.grid_rowconfigure(0, weight=1)
+        grid_init(item_edit_frame)
 
         self.initialize_item_edit(item_edit_frame)
 
         # Buttons while on EDIT mode
         edit_btn_frame = ttk.Frame(edit)
-        edit_btn_frame.grid(row=0, column=1, sticky='news')
-        edit_btn_frame.grid_columnconfigure(0, weight=1)
-        for i in range(2):
-            edit_btn_frame.grid_rowconfigure(i, weight=0)
+        grid_init(
+            edit_btn_frame, 
+            init_row_col=(0, 1), 
+            subrows=[(i, 0) for i in range(2)]
+            )
 
         save_button = ttk.Button(
             edit_btn_frame, text='Save', command=self.switch_to_view)
         save_button.grid(row=0, column=1, sticky=(N, W, E))
+        
         self.cancel_button = ttk.Button(
             edit_btn_frame,
             text='Cancel',
@@ -255,12 +266,11 @@ class Orchestrator:
     def initialize_item_edit(self, frame):
         """Create frames and labels for single item edition."""
         local_frame = ttk.Frame(frame)
-        local_frame.grid(row=0, column=0, sticky='news')
-        local_frame.grid_rowconfigure(0, weight=0)
-        local_frame.grid_rowconfigure(1, weight=0)
-        local_frame.grid_rowconfigure(2, weight=1)
-        local_frame.grid_columnconfigure(0, weight=0)
-        local_frame.grid_columnconfigure(1, weight=1)
+        grid_init(
+            local_frame,
+            subrows=[(0, 0), (1, 0), (2, 1)],
+            subcols=[(0, 0), (1, 1)]
+        )
         
         self.item_type_edit = ttk.Label(
             local_frame, 
@@ -272,13 +282,17 @@ class Orchestrator:
         item_name_descr = ttk.Label(local_frame, text='name')
         item_name_descr.grid(row=1, column=0, sticky='wen')
 
-        self.text['name'] = Text(local_frame, height=ONE_LINE_HEIGHT)
+        self.text['name'] = Text(
+            local_frame, 
+            height=ONE_LINE_HEIGHT, 
+            font=DEFAULT_FONT
+            )
         self.text['name'].grid(row=1, column=1, sticky='w')
 
         item_content_descr = ttk.Label(local_frame, text='content')
         item_content_descr.grid(row=2, column=0, sticky='wen')
         
-        self.text['content'] = Text(local_frame)
+        self.text['content'] = Text(local_frame, font=DEFAULT_FONT)
         self.text['content'].grid(row=2, column=1, sticky='nwe')
 
     def switch_to_edit(self):
@@ -363,9 +377,7 @@ class Orchestrator:
             self.left_search_pane,
             style=self.theme.searchbar.ik_name,
         )
-        searchbar.grid(row=1, column=1, sticky=(E, W, N, S))
-        searchbar.grid_columnconfigure(0, weight=1)
-        searchbar.grid_rowconfigure(0, weight=1)
+        grid_init(searchbar, init_row_col=(1, 1))
 
         # inspired from: https://tkdocs.com/tutorial/widgets.html#entry (Validation section)
         search_entry = ttk.Entry(
@@ -374,8 +386,9 @@ class Orchestrator:
             validate='key',
             validatecommand=(self.root.register(self.validate_search), '%P'),
             style=self.theme.generic_entry.ik_name,
+            font=DEFAULT_FONT
         )
-        search_entry.grid(row=0, column=0, sticky='news', pady=2)
+        search_entry.grid(row=0, column=0, sticky='news')  #, pady=2)
         search_entry.bind("<Return>", self.collect_search)
         search_entry.bind("<FocusOut>", self.collect_search)
         search_entry.bind("<KeyRelease>", self.collect_search)
@@ -388,10 +401,7 @@ class Orchestrator:
             self.left_panel,
             text='Results',
         )
-        self.results_frame.grid(row=0, column=0)
-        self.results_frame.grid_columnconfigure(0, weight=0)
-        self.results_frame.grid_columnconfigure(1, weight=1)
-        self.results_frame.grid_rowconfigure(0, weight=1)
+        grid_init(self.results_frame, subcols=[(0, 0), (1, 1)])
         self.left_panel.add(self.results_frame, weight=3)
 
         # ------------------
@@ -405,7 +415,7 @@ class Orchestrator:
             self.results_frame,
             scrollregion=(0, 0, scroll_width, scroll_height),
             yscrollcommand=scr.set,
-            background='blue'
+            background=CANVAS_OPTIONS['search_results']['background']
         )
         scr['command'] = self.results_canvas.yview
         self.results_canvas.grid(column=1, row=0, sticky=(N, W, E, S))
@@ -421,11 +431,18 @@ class Orchestrator:
         result_tag = 'result_item'
         self.results_canvas.delete(result_tag)
         for result_ix, gui_item in enumerate(results_list):
-            search_result = ttk.Label(
+            mini_item_frame = ttk.Labelframe(
                 self.results_canvas,
+                text=gui_item.__class__.__name__,
+                style=self.theme.item_snippet.ik_name
+            )
+            grid_init(mini_item_frame)
+            search_result = ttk.Label(
+                mini_item_frame,
                 textvariable=gui_item.name_var,
                 wraplength=WRAP_1,  # pixels
             )
+            search_result.grid(row=0, column=0, sticky='news')
             self.view_callbacks[result_ix] = partial(
                 self.populate_view_pane, gui_item)
 
@@ -435,9 +452,9 @@ class Orchestrator:
                 0,
                 self.item_result_height * result_ix,
                 anchor='nw',
-                window=search_result,
+                window=mini_item_frame,
                 height=self.item_result_height,
-                tags=(result_tag)
+                tags=(result_tag,)
             )
 
     def populate_view_pane(self, gui_item: GUIItem, *args):
@@ -495,11 +512,11 @@ class Orchestrator:
             style=self.theme.left_panel.ik_name,
             text='Search'
         )
-        self.left_search_pane.grid(column=0, row=0, sticky='news')
-        self.left_search_pane.grid_rowconfigure(0, weight=0)
-        self.left_search_pane.grid_columnconfigure(0, weight=0)
-        self.left_search_pane.grid_rowconfigure(1, weight=1)
-        self.left_search_pane.grid_columnconfigure(1, weight=1)
+        grid_init(
+            self.left_search_pane,
+            subrows=[(0, 0), (1, 1)],
+            subcols=[(0, 0), (1, 1)]
+        )
 
         self.left_panel.add(self.left_search_pane, weight=0)
         self.left_panel.bind('<<filter-update>>', self.collect_search)

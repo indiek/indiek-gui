@@ -3,16 +3,16 @@ from typing import Optional, Mapping, Any
 
 
 _ENTRY_DEFAULT_LENGTH = 54
-_DEFAULT_FONT = ('Century 9')
+DEFAULT_FONT = 'Century 9'
 _STYLES = {
     'entries': {
         'Generic.TEntry': dict(
-            font=_DEFAULT_FONT,
             width=_ENTRY_DEFAULT_LENGTH,
+            padding=1,
         ),
         'DebugGeneric.TEntry': dict(
-            font=_DEFAULT_FONT,
             width=_ENTRY_DEFAULT_LENGTH,
+            padding=1,
         ),
     },
     'labels': {
@@ -32,10 +32,12 @@ _STYLES = {
     'panels': {
         'DebugRightpanel.TLabelframe': dict(
             background='green',
+            relief='ridge',
             padding=10,
         ),
         'Rightpanel.TLabelframe': dict(
             padding=10,
+            relief='ridge',
         ),
         'Leftpanel.TLabelframe': dict(
             foreground='black',
@@ -65,6 +67,8 @@ _STYLES = {
             borderwidth=1, 
             relief='groove'
         ),
+        'ItemSnippet.TLabelframe': dict(),
+        'DebugItemSnippet.TLabelframe': dict(),
     }
 }
 
@@ -92,6 +96,7 @@ class IndiekTheme:
         'labels',
         'frames',
         'entries',
+        'frames',
     )
 
     style_names = (
@@ -101,7 +106,8 @@ class IndiekTheme:
         'Leftpanel.TLabelframe',
         'Generic.TLabel',
         'ItemView.TFrame',
-        'Generic.TEntry'
+        'Generic.TEntry',
+        'ItemSnippet.TLabelframe',
     )
 
     attr_names = (
@@ -112,6 +118,7 @@ class IndiekTheme:
         'generic_label',
         'item_view',
         'generic_entry',
+        'item_snippet',
     )
 
     def __init__(self, debug: bool = False):
