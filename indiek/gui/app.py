@@ -430,23 +430,32 @@ class Orchestrator:
         # clear canvas
         result_tag = 'result_item'
         self.results_canvas.delete(result_tag)
+        # self.result_buttons = []
+        self.result_bools = []
         for result_ix, gui_item in enumerate(results_list):
             mini_item_frame = ttk.Labelframe(
                 self.results_canvas,
                 text=gui_item.__class__.__name__,
                 style=self.theme.item_snippet.ik_name
             )
+            
             grid_init(mini_item_frame)
-            search_result = ttk.Label(
+
+            self.view_callbacks[result_ix] = partial(
+                self.populate_view_pane, gui_item, source_ix=result_ix)
+            result_bool = BooleanVar()
+            search_result = ttk.Checkbutton(
                 mini_item_frame,
                 textvariable=gui_item.name_var,
-                wraplength=WRAP_1,  # pixels
+                command=self.view_callbacks[result_ix],
+                style=self.theme.item_button.ik_name,
+                variable=result_bool
             )
+            self.result_bools.append(result_bool)
+            # self.result_buttons.append(search_result)
             search_result.grid(row=0, column=0, sticky='news')
-            self.view_callbacks[result_ix] = partial(
-                self.populate_view_pane, gui_item)
 
-            search_result.bind('<Button-1>', self.view_callbacks[result_ix])
+            mini_item_frame.bind('<Button-1>', self.view_callbacks[result_ix])
 
             _ = self.results_canvas.create_window(
                 0,
@@ -457,7 +466,7 @@ class Orchestrator:
                 tags=(result_tag,)
             )
 
-    def populate_view_pane(self, gui_item: GUIItem, *args):
+    def populate_view_pane(self, gui_item: GUIItem, *args, source_ix = None):
         """Populate View & Edit tabs with GUIItem data.
 
         This callback gets triggered when:
@@ -469,6 +478,7 @@ class Orchestrator:
         """
         self.view_var = gui_item
         self.item_type['text'] = self.view_var.__class__.__name__
+
         # TODO: think about improving below logic
         self.item_view_name_label['textvariable'] = self.view_var.name_var
         self.item_view_content_label['textvariable'] = self.view_var.content_var
@@ -481,8 +491,11 @@ class Orchestrator:
         self.edit_button['state'] = 'normal'
         self.cancel_button['state'] = 'normal'  # acts as "reload" button
 
-        # # TODO: populate edit tab here as well?
-        # self.populate_edit_pane(gui_item)
+        # deselect all other result buttons
+        if source_ix is not None:
+            for ix, bool_ in enumerate(self.result_bools):
+                if ix != source_ix:
+                    bool_.set(False)
 
     def populate_edit_pane(self, gui_item: Optional[GUIItem] = None):
         """Populate text widget with self.view_var or provided GUIItem."""

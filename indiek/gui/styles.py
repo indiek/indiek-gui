@@ -26,11 +26,13 @@ _STYLES = {
         ),
     },
     'buttons': {
+        'Toggle.TCheckbutton': dict(),
+        'DebugToggle.TCheckbutton': dict(),
         'DebugGeneric.TButton': dict(),
         'Generic.TButton': dict()
     },
     'panels': {
-        'DebugRightpanel.TLabelframe': dict(
+        'DebugRightpanel.TLabelframe': dict(  # https://stackoverflow.com/a/70601534
             background='green',
             relief='ridge',
             padding=10,
@@ -90,6 +92,7 @@ class IndieKStyle(ttk.Style):
 class IndiekTheme:
     indices = (
         'buttons',
+        'buttons',
         'panels',
         'frames',
         'panels',
@@ -100,6 +103,7 @@ class IndiekTheme:
     )
 
     style_names = (
+        'Toggle.TCheckbutton',
         'Generic.TButton',
         'Rightpanel.TLabelframe',
         'Searchbar.TFrame',
@@ -111,6 +115,7 @@ class IndiekTheme:
     )
 
     attr_names = (
+        'item_button',
         'button',
         'right_panel',
         'searchbar',
@@ -131,8 +136,20 @@ class IndiekTheme:
         for attr_name, index, style_name in iterator:
             self.initialize_attr(attr_name, index, style_name)
 
+        self.apply_maps()
+
     def initialize_attr(self, attr_name, index, style_name):
         config = _STYLES[index][style_name]
         attr_val = IndieKStyle(style_name, config)
         setattr(self, attr_name, attr_val)
         
+    def apply_maps(self):
+        pass
+        # self.item_button.map(
+        #     self.item_button.ik_name,
+        #     relief=[('active', 'sunken')]
+        # )
+        # self.item_snippet.map(
+        #     self.item_snippet.ik_name, 
+        #     relief=[('focus', 'sunken'), ('!selected', 'raised')]
+        #     )
