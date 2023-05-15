@@ -443,7 +443,8 @@ class Orchestrator:
 
             self.view_callbacks[result_ix] = partial(
                 self.populate_view_pane, gui_item, source_ix=result_ix)
-            result_bool = BooleanVar()
+            
+            result_bool = BooleanVar(value=gui_item == self.view_var)
             search_result = ttk.Checkbutton(
                 mini_item_frame,
                 textvariable=gui_item.name_var,
