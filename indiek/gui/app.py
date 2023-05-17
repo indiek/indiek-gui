@@ -114,6 +114,9 @@ class Orchestrator:
         self.max_results = max_results
 
         self.root = root
+
+        self.create_main_menu()
+
         self.mainframe = ttk.Panedwindow(self.root, orient=HORIZONTAL)
         self.mainframe.grid(column=0, row=0, sticky='news')
         self.mainframe.columnconfigure(0, weight=1)
@@ -607,10 +610,27 @@ class Orchestrator:
             self.ikid_to_result_slot[gui_item._ikid] = result_ix
         self.populate_search_results_canvas(self.search_results_list)
 
+    def persist_box(self):
+        raise NotImplementedError
+    
+    def load_box(self):
+        raise NotImplementedError
+
+    def create_main_menu(self):
+        win = self.root
+        menubar = Menu(win)
+        menu_file = Menu(menubar)
+        menu_file.add_command(label='Persist Session', command=self.persist_box)
+        menu_file.add_command(label='Load Session', command=self.load_box)
+        menubar.add_cascade(menu=menu_file, label='File')
+        win['menu'] = menubar
+        return win
+
 
 def main(debug: bool = False):
     """Launch main Tkinter event loop."""
     root = Tk()
+    root.option_add('*tearOff', FALSE)
     root.title(f"indiek-gui v{__version__}")
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
