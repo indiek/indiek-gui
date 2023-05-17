@@ -8,8 +8,10 @@ What variable is shown in the Text widgets from the Edit notebook tab?
 # TODO: set minimum width on labels or their containing columns
 from typing import Optional, Mapping, Tuple, Iterator
 from tkinter import *
+from tkinter import filedialog
 from tkinter import ttk
 from functools import partial
+from indiek.mockdb.persistence import persist, load_from_file
 from indiek.core.search import list_all_items, filter_str
 from indiek.gui.items import core_to_gui_item, Item as GUIItem, Definition, Theorem, Proof
 from indiek.gui.styles import IndiekTheme, DEFAULT_FONT
@@ -20,6 +22,11 @@ from . import __version__
 
 
 PairOfInt = Tuple[int, int]
+
+
+DEFAULT_PERSISTENCE_DIR = '/home/adrian_admin/prog/indiek/indiek-gui/.data/'
+"""Path where DB gets persisted and loaded from."""
+
 
 ITEM_TYPES = [Definition, Theorem, Proof]
 """List of item types."""
@@ -100,16 +107,11 @@ class Orchestrator:
             indiek_theme: type = IndiekTheme,
             debug: bool = False
             ):
-        self.theme = indiek_theme(debug=debug)
+        self.debug = debug
+        self.theme = indiek_theme(debug=self.debug)
         self.search_var = StringVar()
 
-        self.view_var = GUIItem(
-                name_var=StringVar(value=self._default_str),
-                content_var=StringVar(value=self._default_str),
-                name=self._default_str, 
-                content=self._default_str
-                )
-        """Current GUIItem for View/Edit panel."""
+        self.view_var = self._initialize_view_var()
 
         self.max_results = max_results
 
@@ -142,6 +144,8 @@ class Orchestrator:
             text=gui_item.__class__.__name__,
             style=self.theme.generic_label.ik_name
             )
+        if self.debug:
+            self.item_type['text'] += ' ikid:' + str(gui_item._ikid)
         self.item_type.grid(row=0, column=0, sticky='news')
         gen_label = partial(ttk.Label, local_frame, style=self.theme.generic_label.ik_name)
         item_name_descr = gen_label(text='name')
@@ -332,7 +336,11 @@ class Orchestrator:
 
         if save:
             # save to DB
-            self.view_var.save()
+            ikid = self.view_var.save()
+
+            if self.debug:
+                itype = self.view_var.__class__.__name__
+                self.item_type['text'] = itype + ' ikid:' + str(ikid)
 
             # refresh search results
             self.collect_search()
@@ -342,6 +350,7 @@ class Orchestrator:
 
         # focus back on view
         self.delete_button['state'] = 'normal'
+
         self.view_nb.select(self.view_id)
 
     def _initialize_filter_block(self):
@@ -482,6 +491,8 @@ class Orchestrator:
         """
         self.view_var = gui_item
         self.item_type['text'] = self.view_var.__class__.__name__
+        if self.debug:
+            self.item_type['text'] += ' ikid:' + str(self.view_var._ikid)
 
         # TODO: think about improving below logic
         self.item_view_name_label['textvariable'] = self.view_var.name_var
@@ -508,6 +519,8 @@ class Orchestrator:
         
         # display which Item type is being edited
         self.item_type_edit['text'] = gui_item.__class__.__name__
+        if self.debug:
+            self.item_type_edit['text'] += ' ikid:' + str(gui_item._ikid)
 
         # populate Text widgets for edition
         for attr_name in gui_item.displayable:
@@ -562,6 +575,7 @@ class Orchestrator:
         - a <<filter-update>> event happens
         - a change happens in search bar entry
         - user clicks "Save" on edit tab
+        - user loads persisted DB
 
         This method calls refresh_results method to update
         results list.
@@ -571,6 +585,12 @@ class Orchestrator:
         vars['search'] = self.search_var.get()
 
         self.refresh_results(vars)
+
+    def clear_all_search(self):
+        self.filters = []
+        # TODO: deselect all radio buttons
+        
+        self.search_var.set('')
 
     def refresh_results(self, search_params: Optional[Mapping] = None):
         """Trigger backend search using search parameters.
@@ -610,11 +630,24 @@ class Orchestrator:
             self.ikid_to_result_slot[gui_item._ikid] = result_ix
         self.populate_search_results_canvas(self.search_results_list)
 
+    def _initialize_view_var(self):
+        return GUIItem(
+                name_var=StringVar(value=self._default_str),
+                content_var=StringVar(value=self._default_str),
+                name=self._default_str, 
+                content=self._default_str
+                )
+
     def persist_box(self):
-        raise NotImplementedError
-    
+        filename = filedialog.asksaveasfilename(initialdir=DEFAULT_PERSISTENCE_DIR)
+        persist(filename)
+
     def load_box(self):
-        raise NotImplementedError
+        filename = filedialog.askopenfilename(initialdir=DEFAULT_PERSISTENCE_DIR)
+        load_from_file(filename)
+        self.clear_all_search()
+        self.collect_search()
+        self.view_var = self._initialize_view_var()
 
     def create_main_menu(self):
         win = self.root
