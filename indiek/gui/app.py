@@ -13,11 +13,13 @@ from tkinter import ttk
 from functools import partial
 from indiek.mockdb.persistence import persist, load_from_file
 from indiek.core.search import list_all_items, filter_str
-from indiek.gui.items import core_to_gui_item, Item as GUIItem, Definition, Theorem, Proof
+from indiek.gui.items import core_to_gui_item, Item as GUIItem, Definition, Theorem, Proof, Note, Question
 from indiek.gui.styles import IndiekTheme, DEFAULT_FONT
 from indiek.core.items import (Definition as CoreDefinition, 
                                Theorem as CoreTheorem, 
-                               Proof as CoreProof)
+                               Proof as CoreProof,
+                               Note as CoreNote, 
+                               Question as CoreQuestion)
 from . import __version__
 
 
@@ -28,18 +30,20 @@ DEFAULT_PERSISTENCE_DIR = '/home/adrian_admin/prog/indiek/indiek-gui/.data/'
 """Path where DB gets persisted and loaded from."""
 
 
-ITEM_TYPES = [Definition, Theorem, Proof]
+ITEM_TYPES = [Definition, Theorem, Proof, Note, Question]
 """List of item types."""
 
 
-FILTER_NAMES = ['Definitions', 'Theorems', 'Proofs']
+FILTER_NAMES = ['Definitions', 'Theorems', 'Proofs', 'Notes', 'Questions']
 """Strings used in filter radio buttons for each Item type."""
 
 
 NAME_TO_ITEM_TYPE = {
     'Definitions': CoreDefinition, 
     'Theorems': CoreTheorem, 
-    'Proofs': CoreProof
+    'Proofs': CoreProof,
+    'Notes': CoreNote, 
+    'Questions': CoreQuestion,
 }
 assert set(NAME_TO_ITEM_TYPE.keys()) == set(FILTER_NAMES)
 
@@ -642,16 +646,17 @@ class Orchestrator:
 
     def persist_box(self):
         filename = filedialog.asksaveasfilename(initialdir=DEFAULT_PERSISTENCE_DIR)
-        persist(filename)
+        if filename:
+            persist(filename)
 
     def load_box(self):
         filename = filedialog.askopenfilename(initialdir=DEFAULT_PERSISTENCE_DIR)
-        load_from_file(filename)
-        neutral_item = self._initialize_view_var()
-        self.populate_view_pane(neutral_item)
-        self.clear_all_search()
-        self.collect_search()
-
+        if filename:
+            load_from_file(filename)
+            neutral_item = self._initialize_view_var()
+            self.populate_view_pane(neutral_item)
+            self.clear_all_search()
+            self.collect_search()
 
     def create_main_menu(self):
         win = self.root

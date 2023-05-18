@@ -2,7 +2,9 @@ from tkinter import StringVar
 from indiek.core.items import (Item as CoreItem,
                                Definition as CoreDefinition,
                                Proof as CoreProof,
-                               Theorem as CoreTheorem)
+                               Theorem as CoreTheorem,
+                               Note as CoreNote,
+                               Question as CoreQuestion)
 
 
 class Item(CoreItem):
@@ -60,22 +62,18 @@ class Item(CoreItem):
         for n in self._str_var_names:
             self.update_str_var(n, '', set_core_attr=True)
 
-class Definition(Item, CoreDefinition):
-    pass
-
-
-class Proof(Item, CoreProof):
-    pass
-
-
-class Theorem(Item, CoreTheorem):
-    pass
-
+class Definition(Item, CoreDefinition): pass
+class Proof(Item, CoreProof): pass
+class Theorem(Item, CoreTheorem): pass
+class Note(Item, CoreNote): pass
+class Question(Item, CoreQuestion): pass
 
 CORE_TO_GUI_TYPES = {
     CoreDefinition: Definition,
     CoreProof: Proof,
-    CoreTheorem: Theorem
+    CoreTheorem: Theorem,
+    CoreNote: Note,
+    CoreQuestion: Question,
 }
 
 

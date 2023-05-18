@@ -8,7 +8,7 @@ with open(join(this_dir, 'README.rst'), encoding='utf-8') as file:
 setup(
     name='indiek-gui',
     python_requires='>=3.8',
-    version='0.0.4',
+    version='0.0.5',
     url='https://pypi.org/project/indiek-gui/',
     description='Tkinter GUI for IndieK',
     long_description=long_description,
@@ -16,7 +16,7 @@ setup(
     author_email='adrian.radillo@gmail.com',
     license='GNU Affero General Public License v3.0',
     packages=['indiek.gui'],
-    install_requires=['indiek-core == 0.1.4'],
+    install_requires=['indiek-core == 0.1.5'],
     extras_require={
         'dev': [
             'pytest',
