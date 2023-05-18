@@ -21,6 +21,11 @@ Call ``indiek-gui`` from your terminal to launch the GUI.
 
     indiek-gui
 
+This GUI enables you to create definitions, theorems and proofs,
+and store them on an mock Database. It offers you the possibility
+to persist the mock database to your file system as a JSON file, 
+and to reload it later on.
+
 =====
 Tests
 =====
