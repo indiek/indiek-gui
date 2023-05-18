@@ -84,7 +84,6 @@ class Orchestrator:
     filter_callbacks = {}
     """Callbacks for filter."""
 
-    filter_buttons = {}
     filter_vars = {}
 
     view_callbacks = {}
@@ -588,8 +587,11 @@ class Orchestrator:
 
     def clear_all_search(self):
         self.filters = []
-        # TODO: deselect all radio buttons
-        
+
+        # deselect all radio buttons
+        for var in self.filter_vars.values():
+            var.set('')
+
         self.search_var.set('')
 
     def refresh_results(self, search_params: Optional[Mapping] = None):
@@ -647,7 +649,8 @@ class Orchestrator:
         load_from_file(filename)
         self.clear_all_search()
         self.collect_search()
-        self.view_var = self._initialize_view_var()
+        neutral_item = self._initialize_view_var()
+        self.populate_view_pane(neutral_item)
 
     def create_main_menu(self):
         win = self.root
