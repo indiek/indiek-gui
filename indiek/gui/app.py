@@ -647,10 +647,11 @@ class Orchestrator:
     def load_box(self):
         filename = filedialog.askopenfilename(initialdir=DEFAULT_PERSISTENCE_DIR)
         load_from_file(filename)
-        self.clear_all_search()
-        self.collect_search()
         neutral_item = self._initialize_view_var()
         self.populate_view_pane(neutral_item)
+        self.clear_all_search()
+        self.collect_search()
+
 
     def create_main_menu(self):
         win = self.root
